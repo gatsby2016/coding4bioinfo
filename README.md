@@ -1,5 +1,5 @@
 # coding4bioinfo
-coding test for bioinfo.
+coding test for bioinfo, bioinfomatics.
 
 ## DCA  
 - 论文地址: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6344535/pdf/41467_2018_Article_7931.pdf
@@ -13,6 +13,12 @@ coding test for bioinfo.
 - 任务5:如论文中所写，测试您自行实现的DCA是否能在组织RNA测序和单细胞RNA测序两个数据集的对照下恢复单细胞RNA测序的一些基因表达。
 - 任务6:如论文中所写，测试您自行实现的DCA是否能恢复转录组表达和细胞表面标志物蛋白之间的相关性。
 
+### 关于ZINB分布
+- [负二项分布](https://zh.wikipedia.org/wiki/%E8%B4%9F%E4%BA%8C%E9%A1%B9%E5%88%86%E5%B8%83)
+- [负二项分布及其应用](https://zhuanlan.zhihu.com/p/111632687)
+- [**零膨胀负二项模型**](https://www.jianshu.com/p/149ff509fe7f): 从测序的机理上建模scRNA-seq数据的分布，进而假设泊松分布，该分布均值方差相等，但是实际上有over-dispersion问题，因此尝试对泊松分布的`lambda`加gamma分布的先验，两个汇总推导得到X服从负二项分布。此时一个问题是，technical noises and biological variability (or dropout)导致零值非常多，这是经典的zero-inflation问题。于是进一步得到ZINB分布模型，其中新增的π可以视为真实的基因表达值被观测为0的概率。同时，ZINB分布也可以reparameteried为基于mean和dispersion parameter的构造。
+- [基于gamma分布先验的泊松分布Poisson–Gamma Mixture等价于负二项分布推导证明](https://gregorygundersen.com/blog/2019/09/16/poisson-gamma-nb/)
+- [单细胞RNA-seq数据分布的选择](https://zhuanlan.zhihu.com/p/95299303)
 ----------------------
 
 ## SC3  
