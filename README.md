@@ -23,7 +23,9 @@ coding test for bioinfo, bioinfomatics.
 
 ## SC3  
 - 论文地址:https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5410170/
+- 论文nature地址: https://www.nature.com/articles/nmeth.4236#Ack1
 - 论文数据集:https://hemberg-lab.github.io/scRNA.seq.datasets/ 在此地址下搜索对应数据集名称即可
+- GITHUB源码：[SC3](https://github.com/hemberg-lab/SC3) and [FastSC3](https://github.com/hemberg-lab/FastSC3) and [SC3s](https://github.com/hemberg-lab/sc3s) and [论文图表生成源码](https://github.com/hemberg-lab/SC3-paper-figures)
 - 任务1: 自行实现SC3算法(不要求SVM优化)，并在论文中给出的12个数据集上进行测试。
 - 任务2: 在R语言环境下安装SC3的软件包,将问题1中的效果和该软件本身的效果进行比较。
 - 任务3: 对于你实现的SC3算法进行SVM优化，并在论文中提到的大规模数据集或者在其它大规模数据集(大于5000个，比如上述地址中的Baron)中进行验证，并和SC3使用SVM优化的效果进行比较。
