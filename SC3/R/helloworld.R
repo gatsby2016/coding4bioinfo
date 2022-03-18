@@ -1,3 +1,7 @@
+# .libPaths()
+# library()
+# install.packages("")
+
 library(SC3)
 
 add <- function(x, y) {
