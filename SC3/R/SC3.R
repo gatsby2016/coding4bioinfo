@@ -1,4 +1,12 @@
-install.packages("languageserver")
+# library()
+# install.packages("languageserver")
+# install.packages("mclust")
+
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+
+# BiocManager::install("scater")
+
 ## ----knitr-options, echo=FALSE, message=FALSE, warning=FALSE------------------
 library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
@@ -31,7 +39,7 @@ sce <- runPCA(sce)
 plotPCA(sce, colour_by = "cell_type1")
 
 ## -----------------------------------------------------------------------------
-sce <- sc3(sce, ks = 2:4, biology = TRUE)
+sce <- sc3(sce, ks = 2:4, n_cores = 1, biology = FALSE)
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  sc3_interactive(sce)
@@ -47,9 +55,9 @@ head(col_data[ , grep("sc3_", colnames(col_data))])
 sce <- runPCA(sce)
 plotPCA(
     sce, 
-    colour_by = "sc3_3_clusters", 
-    size_by = "sc3_3_log2_outlier_score"
-)
+    colour_by = "sc3_3_clusters") 
+    # size_by = "sc3_3_log2_outlier_score"
+# )
 
 ## -----------------------------------------------------------------------------
 row_data <- rowData(sce)
@@ -76,49 +84,49 @@ sc3_plot_silhouette(sce, k = 3)
 sc3_plot_expression(sce, k = 3)
 
 ## ---- fig.height=6, fig.width=8-----------------------------------------------
-sc3_plot_expression(
-    sce, k = 3, 
-    show_pdata = c(
-        "cell_type1", 
-        "log10_total_features",
-        "sc3_3_clusters", 
-        "sc3_3_log2_outlier_score"
-    )
-)
+# sc3_plot_expression(
+#     sce, k = 3, 
+#     show_pdata = c(
+#         "cell_type1", 
+#         "log10_total_features",
+#         "sc3_3_clusters", 
+#         "sc3_3_log2_outlier_score"
+#     )
+# )
 
 ## ---- fig.height=3------------------------------------------------------------
 sc3_plot_cluster_stability(sce, k = 3)
 
 ## ---- fig.height=9------------------------------------------------------------
-sc3_plot_de_genes(sce, k = 3)
+# sc3_plot_de_genes(sce, k = 3)
 
 ## ---- fig.height=9, fig.width=8-----------------------------------------------
-sc3_plot_de_genes(
-    sce, k = 3, 
-    show_pdata = c(
-        "cell_type1", 
-        "log10_total_features",
-        "sc3_3_clusters", 
-        "sc3_3_log2_outlier_score"
-    )
-)
+# sc3_plot_de_genes(
+#     sce, k = 3, 
+#     show_pdata = c(
+#         "cell_type1", 
+#         "log10_total_features",
+#         "sc3_3_clusters", 
+#         "sc3_3_log2_outlier_score"
+#     )
+# )
 
 ## ---- fig.height=6------------------------------------------------------------
-sc3_plot_markers(sce, k = 3)
+# sc3_plot_markers(sce, k = 3)
 
 ## ---- fig.height=6, fig.width=8-----------------------------------------------
-sc3_plot_markers(
-    sce, k = 3, 
-    show_pdata = c(
-        "cell_type1", 
-        "log10_total_features",
-        "sc3_3_clusters", 
-        "sc3_3_log2_outlier_score"
-    )
-)
+# sc3_plot_markers(
+#     sce, k = 3, 
+#     show_pdata = c(
+#         "cell_type1", 
+#         "log10_total_features",
+#         "sc3_3_clusters", 
+#         "sc3_3_log2_outlier_score"
+#     )
+# )
 
 ## -----------------------------------------------------------------------------
-sce <- sc3_prepare(sce)
+sce <- sc3_prepare(sce, n_cores=1)
 str(metadata(sce)$sc3)
 
 ## -----------------------------------------------------------------------------
@@ -147,7 +155,8 @@ head(col_data[ , grep("sc3_", colnames(col_data))])
 ## -----------------------------------------------------------------------------
 sce <- sc3_calc_consens(sce)
 names(metadata(sce)$sc3$consensus)
-names(metadata(sce)$sc3$consensus$`3`)
+
+names(metadata(sce)$sc3$consensus$"3")
 
 ## -----------------------------------------------------------------------------
 metadata(sce)$sc3$kmeans
@@ -157,7 +166,7 @@ col_data <- colData(sce)
 head(col_data[ , grep("sc3_", colnames(col_data))])
 
 ## -----------------------------------------------------------------------------
-sce <- sc3_calc_biology(sce, ks = 2:4)
+# sce <- sc3_calc_biology(sce, ks = 2:4)
 
 ## -----------------------------------------------------------------------------
 col_data <- colData(sce)
@@ -171,7 +180,7 @@ head(row_data[ , grep("sc3_", colnames(row_data))])
 no_svm_labels <- colData(sce)$sc3_3_clusters
 
 ## -----------------------------------------------------------------------------
-sce <- sc3(sce, ks = 2:4, biology = TRUE, svm_num_cells = 50)
+sce <- sc3(sce, ks = 2:4, n_cores=1, biology = False, svm_num_cells = 50)
 
 ## -----------------------------------------------------------------------------
 col_data <- colData(sce)
@@ -184,7 +193,7 @@ head(col_data[ , grep("sc3_", colnames(col_data))])
 
 ## -----------------------------------------------------------------------------
 metadata(sce)$sc3$svm_train_inds <- NULL
-sce <- sc3_calc_biology(sce, ks = 2:4)
+# sce <- sc3_calc_biology(sce, ks = 2:4)
 col_data <- colData(sce)
 head(col_data[ , grep("sc3_", colnames(col_data))])
 
