@@ -2,4 +2,9 @@
 *.zip
 *.docx
 *.pptx
+*.xlsx
+*pyc
+*.gz
+*.rds
 *tmp
+.vscode
