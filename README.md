@@ -54,7 +54,6 @@ coding test for bioinfo, bioinfomatics.
   - [python的scanpy库](https://scanpy.readthedocs.io/en/latest/index.html)以及pip直接安装，[报错 ImportError: DLL load failed while importing utilsextension；解决方案：单独重装tables==3.6.1即可](https://github.com/theislab/scanpy/issues/2108)
   - python sc3 流程大框架撰写
   - [距离度量](https://cloud.tencent.com/developer/article/1406436)
-
 - 3.20 完成**SC3 basic framework** (only cluster without SVM training) python版本开发。数据处理，三个距离矩阵计算，两个降维算法实现并且都已经和Rcode一致对齐。后续的kmeans聚类，转换相似矩阵，层次聚类等方法输出结果未和Rcode比较，仅观察最终输出ARI定量结果(下方)，目前应该没有问题。该版本已经在biase和yan数据上跑通。
   - Yan数据 `>>> adjustedRandIndex {'6': 0.6584306303041297}`, 
   - biase数据 `>>> adjustedRandIndex {'5': 0.9871491842026757}`
