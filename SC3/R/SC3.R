@@ -1,10 +1,10 @@
 # library()
 # install.packages("languageserver")
 # install.packages("mclust")
-
 # if (!require("BiocManager", quietly = TRUE))
 #     install.packages("BiocManager")
-
+# install.packages("Rcpp")
+# install.packages("RcppArmadillo")
 # BiocManager::install("scater")
 
 ## ----knitr-options, echo=FALSE, message=FALSE, warning=FALSE------------------
@@ -17,7 +17,7 @@ library(SC3)
 library(scater)
 
 ONEGO <- FALSE
-Yandata <- TRUE
+Yandata <- FALSE
 if (Yandata) {
     head(ann)
     yan[1:3, 1:3] # vis yan data
@@ -158,6 +158,25 @@ if (ONEGO) {
     ## -----------------------------------------------------------------------------
     sce <- sc3_calc_transfs(sce)
     names(metadata(sce)$sc3$transformations)
+    
+    if (FALSE){
+        ## Rcpp call C norm_laplacian code
+        library(Rcpp)
+        library(RcppArmadillo)
+        sourceCpp(file='SC3/R/norm_laplacian.cpp')
+
+        dists <- metadata(sce)$sc3$distances
+        eu <- get("euclidean", dists)
+        L <- norm_laplacian(eu)
+        L[1, 1:10]
+        L[2, 1:10]
+        l <- eigen(L)
+        tmp <- l$vectors[, order(l$values)]
+
+        n_dim <- metadata(sce)$sc3$n_dim
+
+        trans <- tmp[, 1:max(n_dim)]
+    }
 
     ## -----------------------------------------------------------------------------
     metadata(sce)$sc3$distances

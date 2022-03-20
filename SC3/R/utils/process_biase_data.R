@@ -7,6 +7,8 @@ head(d)
 ### ANNOTATIONS
 ann <- read.table("SC3/Data/biase/biase_cell_types.txt", stringsAsFactors = F)
 
+write.table(ann, "SC3/Data/biase/cell_types_export_from_R.txt")
+write.csv(d, "SC3/Data/biase/biase_export_from_R.csv")
 ### SINGLECELLEXPERIMENT
 source("SC3/R/utils/create_sce.R")
 sceset <- create_sce_from_normcounts(d, ann)
