@@ -54,3 +54,25 @@ coding test for bioinfo, bioinfomatics.
   - [python的scanpy库](https://scanpy.readthedocs.io/en/latest/index.html)以及pip直接安装，[报错 ImportError: DLL load failed while importing utilsextension；解决方案：单独重装tables==3.6.1即可](https://github.com/theislab/scanpy/issues/2108)
   - python sc3 流程大框架撰写
   - [距离度量](https://cloud.tencent.com/developer/article/1406436)
+
+- 3.20 完成**SC3 basic framework** (only cluster without SVM training) python版本开发。数据处理，三个距离矩阵计算，两个降维算法实现并且都已经和Rcode一致对齐。后续的kmeans聚类，转换相似矩阵，层次聚类等方法输出结果未和Rcode比较，仅观察最终输出ARI定量结果(下方)，目前应该没有问题。该版本已经在biase和yan数据上跑通。
+  - Yan数据 `>>> adjustedRandIndex {'6': 0.6584306303041297}`, 
+  - biase数据 `>>> adjustedRandIndex {'5': 0.9871491842026757}`
+  - [理解距离度量：Pearson euclidean and cosine](https://blog.csdn.net/sixtyfour/article/details/80354164)
+  - [机器学习常用距离定义与计算1](https://zhuanlan.zhihu.com/p/101277851) [2](https://zhuanlan.zhihu.com/p/266490448)
+  - [Pearson VS Spearman](https://blog.csdn.net/lambsnow/article/details/79972145)
+  - Pearson： $1 - \frac{(u - \bar{u}) \cdot (v - \bar{v})}
+                  {{||(u - \bar{u})||}_2 {||(v - \bar{v})||}_2}$
+  - [decomposition.PCA](https://www.cnblogs.com/pinard/p/6243025.html)
+  - [graph laplacian matrix](https://zhuanlan.zhihu.com/p/25096844)
+  - [VScode R debug](https://blog.csdn.net/qq_42679415/article/details/120374896)
+  - [因为graph laplacian没对齐 尝试调试看R调用C函数的norm_laplacian](https://www.cnblogs.com/lotusto/p/5740297.html#:~:text=R%E8%AF%AD%E8%A8%80%E8%B0%83%E7%94%A8C%2B%2B%20Rcpp%E5%8C%85%E6%98%AF%E4%B8%80%E4%B8%AA%E6%89%93%E9%80%9AR%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E8%AF%AD%E8%A8%80%E7%9A%84%E9%80%9A%E4%BF%A1%E7%BB%84%E4%BB%B6%E5%8C%85%EF%BC%8C%E6%8F%90%E4%BE%9B%E4%BA%86R%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E5%87%BD%E6%95%B0%E7%9A%84%E7%9B%B8%E4%BA%92%E8%B0%83%E7%94%A8%E3%80%82,R%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E8%AF%AD%E8%A8%80%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E9%80%9A%E8%BF%87Rcpp%E5%8C%85%E8%BF%9B%E8%A1%8C%E5%AE%8C%E6%95%B4%E7%9A%84%E6%98%A0%E5%B0%84%E3%80%82%20R%E8%AF%AD%E8%A8%80%E8%B7%A8%E7%95%8C%E8%B0%83%E7%94%A8C%2B%2B) [rtools4.0官方](https://cran.r-project.org/bin/windows/Rtools/rtools40.html) [利用Rcpp和RcppArmadillo创建R包](https://blog.csdn.net/iamsuperman2/article/details/77103568) 
+  - [搞懂norm_laplacian代码 基于官方RcppArmadillo的c++ API](http://arma.sourceforge.net/docs.html#each_colrow)
+
+
+### TBD
+- python hybrid model with SVM training support
+- python plots func support for visualization, such as `sc3_plot_consensus` and `sc3_plot_expression`
+- spearman distance slow calculation
+- more datasets support
+- dist mearsurement and dims reduction support
