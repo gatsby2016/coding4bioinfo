@@ -1,6 +1,14 @@
 # coding4bioinfo
 coding test for bioinfo, bioinfomatics.
 
+
+## Update
+- 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
+  - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
+  - hybrid model `40 cluster+ remained svm`： `{'5': 0.9871491842026757}`效果未改善
+
+-----------------
+
 ## DCA 关于ZINB分布
 - [负二项分布](https://zh.wikipedia.org/wiki/%E8%B4%9F%E4%BA%8C%E9%A1%B9%E5%88%86%E5%B8%83)
 - [负二项分布及其应用](https://zhuanlan.zhihu.com/p/111632687)
@@ -44,7 +52,9 @@ coding test for bioinfo, bioinfomatics.
   - [VScode R debug](https://blog.csdn.net/qq_42679415/article/details/120374896)
   - [因为graph laplacian没对齐 尝试调试看R调用C函数的norm_laplacian](https://www.cnblogs.com/lotusto/p/5740297.html#:~:text=R%E8%AF%AD%E8%A8%80%E8%B0%83%E7%94%A8C%2B%2B%20Rcpp%E5%8C%85%E6%98%AF%E4%B8%80%E4%B8%AA%E6%89%93%E9%80%9AR%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E8%AF%AD%E8%A8%80%E7%9A%84%E9%80%9A%E4%BF%A1%E7%BB%84%E4%BB%B6%E5%8C%85%EF%BC%8C%E6%8F%90%E4%BE%9B%E4%BA%86R%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E5%87%BD%E6%95%B0%E7%9A%84%E7%9B%B8%E4%BA%92%E8%B0%83%E7%94%A8%E3%80%82,R%E8%AF%AD%E8%A8%80%E5%92%8CC%2B%2B%E8%AF%AD%E8%A8%80%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E9%80%9A%E8%BF%87Rcpp%E5%8C%85%E8%BF%9B%E8%A1%8C%E5%AE%8C%E6%95%B4%E7%9A%84%E6%98%A0%E5%B0%84%E3%80%82%20R%E8%AF%AD%E8%A8%80%E8%B7%A8%E7%95%8C%E8%B0%83%E7%94%A8C%2B%2B) [rtools4.0官方](https://cran.r-project.org/bin/windows/Rtools/rtools40.html) [利用Rcpp和RcppArmadillo创建R包](https://blog.csdn.net/iamsuperman2/article/details/77103568) 
   - [搞懂norm_laplacian代码 基于官方RcppArmadillo的c++ API](http://arma.sourceforge.net/docs.html#each_colrow)
-
+- 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
+  - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
+  - hybrid model `40 cluster+ remained svm`： `{'5': 0.9871491842026757}`
 
 ----------------
 ## INSTALL (to be updated)
@@ -52,7 +62,7 @@ coding test for bioinfo, bioinfomatics.
 ----------------
 
 ## TBD
-- python hybrid model with SVM training support
+- ~~python hybrid model with SVM training support~~
 - python plots func support for visualization, such as `sc3_plot_consensus` and `sc3_plot_expression`
 - spearman distance slow calculation
 - more datasets support
