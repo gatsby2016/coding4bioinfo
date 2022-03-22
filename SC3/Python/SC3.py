@@ -6,6 +6,9 @@ import math
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 import scanpy as sc
 from sklearn import preprocessing, decomposition, svm
 from sklearn import metrics
@@ -289,6 +292,8 @@ class SC3(object):
         for key_, matrix in all_ks_sim_matrix.items():
             hcluster = AgglomerativeClustering(int(key_), linkage="complete")
             hcluster.fit(matrix)
+            sns.clustermap(matrix, method="complete")
+            plt.show()
             hcluster_res[key_] = hcluster.labels_
         self.adata.uns["hcluster_res"] = hcluster_res
 
