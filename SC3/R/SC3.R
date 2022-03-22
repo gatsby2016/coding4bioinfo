@@ -9,6 +9,7 @@
 
 ## ----knitr-options, echo=FALSE, message=FALSE, warning=FALSE------------------
 library(knitr)
+set.seed(2022)
 opts_chunk$set(fig.align = "center", fig.width = 6, fig.height = 5, dev = "png")
 
 ## ---- message=FALSE, warning=FALSE--------------------------------------------
@@ -43,6 +44,7 @@ if (Yandata) {
     colData(sce)
     colData(sce)$cell_type1
     colData(sce)$cell_type2
+    colData(sce)$cell_type1_category <- colData(sce)$cell_type1
     assayNames(sce)
     counts(sce)[1, ]
     normcounts(sce)[1, ]
@@ -55,7 +57,7 @@ if (ONEGO) {
     plotPCA(sce, colour_by = "cell_type2")
 
     ## -----------------------------------------------------------------------------
-    sce <- sc3(sce, ks = 2:4, n_cores = 1, biology = FALSE)
+    sce <- sc3(sce, n_cores = 1, biology = FALSE)
 
     ## ---- eval=FALSE--------------------------------------------------------------
     sc3_interactive(sce)
@@ -67,11 +69,12 @@ if (ONEGO) {
     col_data <- colData(sce)
     head(col_data[, grep("sc3_", colnames(col_data))])
 
+    cluter_name <- paste("sc3", metadata(sce)$sc3$k_estimation, "clusters", sep="_")
     ## -----------------------------------------------------------------------------
     sce <- runPCA(sce)
     plotPCA(
         sce,
-        colour_by = "sc3_3_clusters"
+        colour_by = cluter_name
     )
     # size_by = "sc3_3_log2_outlier_score"
     # )
@@ -90,7 +93,7 @@ if (ONEGO) {
         show_pdata = c(
             "cell_type1",
             "log10_total_features",
-            "sc3_3_clusters",
+            cluter_name,
             "sc3_3_log2_outlier_score"
         )
     )
@@ -107,7 +110,7 @@ if (ONEGO) {
     #     show_pdata = c(
     #         "cell_type1",
     #         "log10_total_features",
-    #         "sc3_3_clusters",
+    #         cluter_name,
     #         "sc3_3_log2_outlier_score"
     #     )
     # )
@@ -124,7 +127,7 @@ if (ONEGO) {
     #     show_pdata = c(
     #         "cell_type1",
     #         "log10_total_features",
-    #         "sc3_3_clusters",
+    #         cluter_name,
     #         "sc3_3_log2_outlier_score"
     #     )
     # )
@@ -138,7 +141,7 @@ if (ONEGO) {
     #     show_pdata = c(
     #         "cell_type1",
     #         "log10_total_features",
-    #         "sc3_3_clusters",
+    #         cluter_name,
     #         "sc3_3_log2_outlier_score"
     #     )
     # )
@@ -150,6 +153,8 @@ if (ONEGO) {
     ## -----------------------------------------------------------------------------
     sce <- sc3_estimate_k(sce)
     str(metadata(sce)$sc3)
+    est_k <- metadata(sce)$sc3$k_estimation
+    ks_val <- c(metadata(sce)$sc3$k_estimation)
 
     ## -----------------------------------------------------------------------------
     sce <- sc3_calc_dists(sce)
@@ -182,7 +187,7 @@ if (ONEGO) {
     metadata(sce)$sc3$distances
 
     ## -----------------------------------------------------------------------------
-    sce <- sc3_kmeans(sce, ks = 2:4)
+    sce <- sc3_kmeans(sce, ks = ks_val)
     names(metadata(sce)$sc3$kmeans)
 
     ## -----------------------------------------------------------------------------
@@ -193,7 +198,7 @@ if (ONEGO) {
     sce <- sc3_calc_consens(sce)
     names(metadata(sce)$sc3$consensus)
 
-    names(metadata(sce)$sc3$consensus$"3")
+    names(metadata(sce)$sc3$consensus$est_k)
 
     ## -----------------------------------------------------------------------------
     metadata(sce)$sc3$kmeans
@@ -214,17 +219,18 @@ if (ONEGO) {
     head(row_data[, grep("sc3_", colnames(row_data))])
 
     ## -----------------------------------------------------------------------------
-    no_svm_labels <- colData(sce)$sc3_3_clusters
+    cluter_name <- paste("sc3", metadata(sce)$sc3$k_estimation, "clusters", sep="_")
+    no_svm_labels <- colData(sce)[cluter_name][,1]
 
     ## -----------------------------------------------------------------------------
-    sce <- sc3(sce, ks = 2:4, n_cores = 1, biology = FALSE, svm_num_cells = 50)
+    sce <- sc3(sce, ks=ks_val,  n_cores = 1, biology = FALSE, svm_num_cells = 50)
 
     ## -----------------------------------------------------------------------------
     col_data <- colData(sce)
     head(col_data[, grep("sc3_", colnames(col_data))])
 
     ## ---- message=FALSE, warning=FALSE--------------------------------------------
-    sce <- sc3_run_svm(sce, ks = 2:4)
+    sce <- sc3_run_svm(sce, ks = ks_val)
     col_data <- colData(sce)
     head(col_data[, grep("sc3_", colnames(col_data))])
 
@@ -235,10 +241,13 @@ if (ONEGO) {
     head(col_data[, grep("sc3_", colnames(col_data))])
 
     ## -----------------------------------------------------------------------------
-    svm_labels <- colData(sce)$sc3_3_clusters
+    svm_labels <- colData(sce)[cluter_name][, 1]
 
     ## -----------------------------------------------------------------------------
     if (require("mclust")) {
-        adjustedRandIndex(no_svm_labels, svm_labels)
+        print(paste("no svm vs. svm:", adjustedRandIndex(no_svm_labels, svm_labels)))
+        print(paste("no svm vs. label:", adjustedRandIndex(no_svm_labels, colData(sce)$cell_type1)))
+        print(paste("svm vs. label:", adjustedRandIndex(svm_labels, colData(sce)$cell_type1)))
     }
 }
+

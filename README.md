@@ -3,6 +3,13 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
+
+  | Data (ARI metric) | Yan   | Biase | ... |
+  | ------------ | ---------- |-------|----------|
+  | Rcode        | 0.6584     | 0.9871| ... |
+  | Python       | 0.6584     | 0.9871| ... |
+
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
   - hybrid model `40 cluster+ remained svm`： `{'5': 0.9871491842026757}`效果未改善
@@ -55,7 +62,7 @@ coding test for bioinfo, bioinfomatics.
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
   - hybrid model `40 cluster+ remained svm`： `{'5': 0.9871491842026757}`
-
+- 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
 ----------------
 ## INSTALL (to be updated)
 - [python conda env](sc3_env.yaml)
@@ -63,6 +70,7 @@ coding test for bioinfo, bioinfomatics.
 
 ## TBD
 - ~~python hybrid model with SVM training support~~
+- ~~R code ARI quantitative metric completely compared to Python's~~
 - python plots func support for visualization, such as `sc3_plot_consensus` and `sc3_plot_expression`
 - spearman distance slow calculation
 - more datasets support
