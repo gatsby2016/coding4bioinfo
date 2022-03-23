@@ -18,8 +18,9 @@ library(SC3)
 library(scater)
 
 ONEGO <- FALSE
-Yandata <- FALSE
-if (Yandata) {
+Alldata <- c("Yan", "Biase", "Goolam")
+DATA_NAME <- Alldata[1]
+if (DATA_NAME == "Yan") {
     head(ann)
     yan[1:3, 1:3] # vis yan data
     # write.table(ann, "SC3/Data/Yan/cell_types_export_from_R.txt")
@@ -36,7 +37,7 @@ if (Yandata) {
     rowData(sce)$feature_symbol <- rownames(sce)
     # remove features with duplicated names
     sce <- sce[!duplicated(rowData(sce)$feature_symbol), ]
-} else {
+} else if (DATA_NAME == "Biase"){
     sce <- readRDS("SC3/Data/biase/biase.rds")
     rownames(sce)
     rowData(sce)
@@ -44,12 +45,23 @@ if (Yandata) {
     colData(sce)
     colData(sce)$cell_type1
     colData(sce)$cell_type2
-    colData(sce)$cell_type1_category <- colData(sce)$cell_type1
     assayNames(sce)
     counts(sce)[1, ]
     normcounts(sce)[1, ]
     logcounts(sce)[1, ]
+} else if (DATA_NAME == "Goolam"){
+    sce <- readRDS("SC3/Data/Goolam/goolam.rds")
+    rownames(sce)
+    rowData(sce)
+    colnames(sce)
+    colData(sce)
+    colData(sce)$cell_type1
+    colData(sce)$cell_type2
+    assayNames(sce)
+    counts(sce)[1, ]
+    logcounts(sce)[1, ]
 }
+
 
 if (ONEGO) {
     ## -----------------------------------------------------------------------------
