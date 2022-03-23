@@ -63,6 +63,11 @@ coding test for bioinfo, bioinfomatics.
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
   - hybrid model `40 cluster+ remained svm`： `{'5': 0.9871491842026757}`
 - 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
+- 3.23 
+  - understanding PCoA [PCoA主坐标分析;](https://qinqianshan.com/math/gradient/pcoa-analysis/) [principal_coordinates_analysis;](https://www.sequentix.de/gelquest/help/principal_coordinates_analysis.htm) [group discussion;](https://groups.google.com/g/qiime-forum/c/i-2uhMk-Lug)  [PCoA and NMDS;](https://www.davidzeleny.net/anadat-r/doku.php/en:pcoa_nmds)
+  - [聚类算法中不同相似度相异度矩阵计算](https://blog.csdn.net/enochzhu/article/details/109769648)
+  - 重新理解SC3设计流程。第一步特征选择filter;第二步计算distance matrix；此时用到了euclidean and pearson and spearman；三种度量，一种距离，两种相似性系数，而euclidean和pearson都是基于连续量计算，spearman则对变量进行rank，也就变成了顺序的、离散量计算；第二步完成后得到的其实是dissimilarity matrix；然后第三步，对dissimilarity matrix应用PCA和graph laplacian进行降维，说是PCA，但其实又不是PCA，第一输入不是data matrix而是dissimilarity matrix，第二不是用前K个主成分变换，而是取得前K个主成分；而取前K个最大特征值对应特征向量的操作和PCoA很像，而且PCoA也应用在dissimilarity matrix。**PCoA analysis is also called metric multi-dimensional scaling**。第四步，对降维（或者说变换）后的数据进行多重kmeans聚类，并进行Similarity matrix融合，最后进行层次聚类获得final result。
+
 ----------------
 ## INSTALL (to be updated)
 - [python conda env](sc3_env.yaml)
@@ -71,7 +76,7 @@ coding test for bioinfo, bioinfomatics.
 ## TBD
 - ~~python hybrid model with SVM training support~~
 - ~~R code ARI quantitative metric completely compared to Python's~~
-- python plots func support for visualization, such as `sc3_plot_consensus` and `sc3_plot_expression`
+- ~~python plots func support for visualization, such as `sc3_plot_consensus`~~ and `sc3_plot_expression`
 - spearman distance slow calculation
 - more datasets support
 - dist mearsurement and dims reduction support
