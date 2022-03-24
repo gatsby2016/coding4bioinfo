@@ -37,8 +37,8 @@ class SC3(object):
     # init func. read data, anno and determine the n_dims for subsequent transformation components
     @runtime_statistics
     def __init__(self, data_root=None, anno_root=None, d_region_min=0.04, d_region_max = 0.07, MAX_DIM=15, 
-                pct_dropout_min=0.1, pct_dropout_max=0.9, kmeans_nstart=1000, kmeans_iter_max=1e+09, 
-                times=10, k_range=None, num_SVM_train=0):
+                pct_dropout_min=0.1, pct_dropout_max=0.9, kmeans_nstart=2022, kmeans_iter_max=1e+09, 
+                times=100, k_range=None, num_SVM_train=0):
         """
             @Parameters  \n
             data_root: full data root for gene-cell scRNAseq data file [default: None]\n
@@ -48,7 +48,7 @@ class SC3(object):
             MAX_DIM: for final feats dims MAX limitation. [default: 15]\n
             pct_dropout_min: the min percent for inital gene filter [default: 0.1]\n
             pct_dropout_max: the max percent for inital gene filter [default: 0.9]\n
-            kmeans_nstart: k-means cluster `RANDOMSTATE`param. [default: 50]\n
+            kmeans_nstart: k-means cluster `RANDOMSTATE`param. [default: 2022]\n
             kmeans_iter_max: k-means cluster max iteration limitation [default: 1e+09]\n
             times: k-means `n_init` param. Number of time k-means will be run with different centroid seeds [default: 10]\n
             k_range: the range of the number of `k` centroids for kmeans clustering, 
@@ -58,8 +58,15 @@ class SC3(object):
         # print(">>>SC3 init")
         assert data_root is not None, "please pass data root!"
         self.adata = sc.read_csv(data_root).transpose() # csv文件中行为基因列为cell sc读进来行列倒置了因此需要转置
-        if "Goolam" in data_root or "Baron" in data_root:
-            sc.pp.normalize_total(self.adata, target_sum=1e6) # CPM normalization
+        print("Loading data shape: {}".format(self.adata.X.shape))
+
+        duplicated_symbol = self.adata.var_names.duplicated() #针对性（deng数据）增加特征维度去重
+        self.adata = sc.AnnData(self.adata.X[:, ~duplicated_symbol], 
+                                    obs=self.adata.obs, var=self.adata.var[~duplicated_symbol])
+        print("After duplicating, data shape: {}".format(self.adata.X.shape))
+
+        if "Goolam" in data_root or "Baron" in data_root or "reads" in data_root:
+            sc.pp.normalize_total(self.adata, target_sum=1e6, exclude_highly_expressed=True) # CPM normalization aligned 
         
         self.adata.uns = dict()
         # self.adata.X # matrix val
@@ -73,8 +80,12 @@ class SC3(object):
             anno = pd.read_csv(anno_root, sep=" ")
 
             # self.adata.uns["anno"] = anno
-            if "biase" in anno_root or "Deng" in anno_root:
+            if "biase" in anno_root:
                 del anno["cell_type2"]
+            if "Deng" in anno_root:
+                # del anno["cell_type2"]
+                del anno["cell_type1"]
+                anno = anno.rename(columns={"cell_type2":"cell_type1"})
             if "Baron" in anno_root:
                 del anno["human"]
 
@@ -270,7 +281,8 @@ class SC3(object):
         
         all_ks_sim_matrix = {}
         for k_val in self.k_range:  # 多个不同聚类k
-            kmeans_cls = KMeans(n_clusters=k_val, max_iter=int(self.kmeans_iter_max), n_init=self.times, random_state=self.kmeans_nstart)
+            kmeans_cls = KMeans(n_clusters=k_val, init="random", max_iter=int(self.kmeans_iter_max), 
+                                                    n_init=self.times, random_state=self.kmeans_nstart)
             
             k_cluster_matrix = {}
             for key_, val_matrix in trans_matrix.items(): # 单个k下的dist+transformation组合遍历
@@ -312,7 +324,7 @@ class SC3(object):
         """
         # print(">>>SC3 prepare cluster flag for workflow, support SVM-mixed flag set")
 
-        samples_cluster_flag = np.zeros(self.adata.n_obs, dtype=np.bool)
+        samples_cluster_flag = np.zeros(self.adata.n_obs, dtype=bool)
         index = np.random.choice(range(self.adata.n_obs), self.num_samples4cluster, replace=False)
         samples_cluster_flag[index] = True
     
