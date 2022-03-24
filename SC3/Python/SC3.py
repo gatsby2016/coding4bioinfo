@@ -58,6 +58,9 @@ class SC3(object):
         # print(">>>SC3 init")
         assert data_root is not None, "please pass data root!"
         self.adata = sc.read_csv(data_root).transpose() # csv文件中行为基因列为cell sc读进来行列倒置了因此需要转置
+        if "Goolam" in data_root or "Baron" in data_root:
+            sc.pp.normalize_total(self.adata, target_sum=1e6) # CPM normalization
+        
         self.adata.uns = dict()
         # self.adata.X # matrix val
         # self.adata.obs # cell name, panda dataframe
@@ -72,6 +75,8 @@ class SC3(object):
             # self.adata.uns["anno"] = anno
             if "biase" in anno_root:
                 del anno["cell_type2"]
+            if "Baron" in anno_root:
+                del anno["human"]
 
             self.adata.obs["cell_type"] = anno # set to obs
             self.adata.uns["type_names"] = anno["cell_type1"].unique().tolist() # save type names
@@ -147,10 +152,10 @@ class SC3(object):
         # print(">>>SC3 preprocessing")
         num_cell = self.adata.shape[0]
 
-        sc.pp.filter_genes(self.adata, min_cells=self.pct_dropout_min*num_cell+1) # align to R code, not equal 
-        sc.pp.filter_genes(self.adata, max_cells=self.pct_dropout_max*num_cell-1) # gene filter between (min, max)
+        sc.pp.filter_genes(self.adata, min_cells=self.pct_dropout_min*num_cell) # align to R code, not equal 
+        sc.pp.filter_genes(self.adata, max_cells=self.pct_dropout_max*num_cell) # gene filter between (min, max)
         sc.pp.log1p(self.adata, base=2) # log norm
-        # print(">>>Matrix shape:", self.adata.shape)
+        print(">>>Matrix shape:", self.adata.shape)
 
 
     # Estimate the optimal k for k-means clustering: has been aligned to R code
@@ -292,8 +297,8 @@ class SC3(object):
         for key_, matrix in all_ks_sim_matrix.items():
             hcluster = AgglomerativeClustering(int(key_), linkage="complete")
             hcluster.fit(matrix)
-            sns.clustermap(matrix, method="complete")
-            plt.show()
+            # sns.clustermap(matrix, method="complete") # only if you wan to show hierarchical_clustering map
+            # plt.show()
             hcluster_res[key_] = hcluster.labels_
         self.adata.uns["hcluster_res"] = hcluster_res
 
@@ -385,11 +390,13 @@ if __name__ == "__main__":
     np.random.seed(2022)
     
     root = "SC3/Data/"    
-    data_root_list = ["Yan/yan_export_from_R.csv", "biase/biase_export_from_R.csv"]
-    anno_root_list = ["Yan/cell_types_export_from_R.txt", "biase/cell_types_export_from_R.txt"]
+    data_root_list = ["Yan/yan_export_from_R.csv", "biase/biase_export_from_R.csv", 
+                        "Goolam/goolam_export_from_R.csv", "Baron/Baron_human_export_from_R.csv"]
+    anno_root_list = ["Yan/cell_types_export_from_R.txt", "biase/cell_types_export_from_R.txt", 
+                        "Goolam/cell_types_export_from_R.txt", "Baron/human_cell_types_export_from_R.txt"]
 
     data_root = [os.path.join(root, filename) for filename in data_root_list]
     anno_root = [os.path.join(root, filename) for filename in anno_root_list]
 
-    idx = 1
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=40)
+    idx = 3
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=5000)

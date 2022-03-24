@@ -9,3 +9,7 @@
 *tmp
 .vscode
 *__pycache__
+*tsv
+SC3/Data/Baron/Baron_human_export_from_R.csv
+SC3/Data/Baron/Baron_mouse_export_from_R.csv
+*GSM2230*

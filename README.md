@@ -3,12 +3,13 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.23 新增Goolam数据集及data process R脚本，修复create_sce脚本calculateCPM传参问题；同步更新SC3的R和python脚本支持Goolam数据；目前已完成结果比对，见下表。
 - 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
 
-  | Data (ARI metric) | Yan   | Biase | ... |
-  | ------------ | ---------- |-------|----------|
-  | Rcode        | 0.6584     | 0.9871| ... |
-  | Python       | 0.6584     | 0.9871| ... |
+  | Data (ARI metric) | Yan   | Biase    | Goolam   |
+  | ------------ | ---------- |----------|----------|
+  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) |
+  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | 0.592718(6) |
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
