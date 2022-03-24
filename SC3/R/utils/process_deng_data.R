@@ -1,6 +1,6 @@
 ### DATA
-deng_rpkms <- read.table("deng-rpkms.txt", check.names = F, header = T)
-deng_reads <- read.table("deng-reads.txt", check.names = F, header = T)
+deng_rpkms <- read.table("SC3/Data/Deng/deng-rpkms.txt", check.names = F, header = T)
+deng_reads <- read.table("SC3/Data/Deng/deng-reads.txt", check.names = F, header = T)
 genes <- deng_rpkms[ , 1]
 deng_rpkms <- as.matrix(deng_rpkms[ , 2:ncol(deng_rpkms)])
 rownames(deng_rpkms) <- genes
@@ -17,9 +17,13 @@ labs[labs == "earlyblast" | labs == "midblast" | labs == "lateblast"] = "blast"
 ann$cell_type1 <- labs
 rownames(ann) <- cell_ids
 
+write.table(ann, "SC3/Data/Deng/cell_types_export_from_R.txt")
+write.csv(deng_rpkms, "SC3/Data/Deng/deng_export_from_R_rpkms.csv")
+write.csv(deng_reads, "SC3/Data/Deng/deng_export_from_R_reads.csv")
+
 ### SINGLECELLEXPERIMENT
-source("create_sce.R")
+source("SC3/R/utils/create_sce.R")
 deng_reads <- create_sce_from_counts(deng_reads, ann)
 deng_rpkms <- create_sce_from_normcounts(deng_rpkms, ann)
-saveRDS(deng_rpkms, "deng-rpkms.rds")
-saveRDS(deng_reads, "deng-reads.rds")
+saveRDS(deng_rpkms, "SC3/Data/Deng/deng-rpkms.rds")
+saveRDS(deng_reads, "SC3/Data/Deng/deng-reads.rds")

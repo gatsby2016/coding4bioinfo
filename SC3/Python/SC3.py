@@ -73,7 +73,7 @@ class SC3(object):
             anno = pd.read_csv(anno_root, sep=" ")
 
             # self.adata.uns["anno"] = anno
-            if "biase" in anno_root:
+            if "biase" in anno_root or "Deng" in anno_root:
                 del anno["cell_type2"]
             if "Baron" in anno_root:
                 del anno["human"]
@@ -391,12 +391,14 @@ if __name__ == "__main__":
     
     root = "SC3/Data/"    
     data_root_list = ["Yan/yan_export_from_R.csv", "biase/biase_export_from_R.csv", 
-                        "Goolam/goolam_export_from_R.csv", "Baron/Baron_human_export_from_R.csv"]
+                        "Goolam/goolam_export_from_R.csv", "Baron/Baron_human_export_from_R.csv",
+                        "Deng/deng_export_from_R_rpkms.csv"]
     anno_root_list = ["Yan/cell_types_export_from_R.txt", "biase/cell_types_export_from_R.txt", 
-                        "Goolam/cell_types_export_from_R.txt", "Baron/human_cell_types_export_from_R.txt"]
+                        "Goolam/cell_types_export_from_R.txt", "Baron/human_cell_types_export_from_R.txt",
+                        "Deng/cell_types_export_from_R.txt"]
 
     data_root = [os.path.join(root, filename) for filename in data_root_list]
     anno_root = [os.path.join(root, filename) for filename in anno_root_list]
 
-    idx = 3
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=5000)
+    idx = 4
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0)

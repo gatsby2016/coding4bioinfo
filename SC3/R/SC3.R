@@ -18,8 +18,8 @@ library(SC3)
 library(scater)
 
 ONEGO <- FALSE
-Alldata <- c("Yan", "Biase", "Goolam")
-DATA_NAME <- Alldata[1]
+Alldata <- c("Yan", "Biase", "Goolam", "Deng")
+DATA_NAME <- Alldata[4]
 if (DATA_NAME == "Yan") {
     head(ann)
     yan[1:3, 1:3] # vis yan data
@@ -47,8 +47,8 @@ if (DATA_NAME == "Yan") {
     colData(sce)$cell_type2
     assayNames(sce)
     counts(sce)[1, ]
-    normcounts(sce)[1, ]
-    logcounts(sce)[1, ]
+    # normcounts(sce)[1, ]
+    # logcounts(sce)[1, ]
 } else if (DATA_NAME == "Goolam"){
     sce <- readRDS("SC3/Data/Goolam/goolam.rds")
     rownames(sce)
@@ -58,8 +58,18 @@ if (DATA_NAME == "Yan") {
     colData(sce)$cell_type1
     colData(sce)$cell_type2
     assayNames(sce)
-    counts(sce)[1, ]
-    logcounts(sce)[1, ]
+    # counts(sce)[1, ]
+    # logcounts(sce)[1, ]
+} else if(DATA_NAME == "Deng"){
+    sce <- readRDS("SC3/Data/Deng/deng-rpkms.rds")
+    rownames(sce)
+    rowData(sce)
+    colnames(sce)
+    colData(sce)
+    colData(sce)$cell_type1
+    colData(sce)$cell_type2
+    assayNames(sce)
+    # logcounts(sce)[1, ]
 }
 
 
