@@ -50,7 +50,7 @@ awk '{for (i = 4; i <= NF; i += 6) printf ("%s%c", $i, i + 6 <= NF ? "\t" : "\n"
 reads_lateblast.txt
 sed -i '1s/reads/lateblast/g' reads_lateblast.txt
 
-awk -F"\t" '{if (1)print1}' data/GSM1112767_zy2_expression.txt > gene-names.txt
+awk -F"\t" '{if (1)print $1}' data/GSM1112767_zy2_expression.txt > gene-names.txt
 
 paste reads_*.txt > deng.txt
 paste gene-names.txt deng.txt > deng-reads.txt
