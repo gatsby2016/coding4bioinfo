@@ -169,7 +169,7 @@ if (ONEGO) {
     # )
 } else {
     ## -----------------------------------------------------------------------------
-    sce <- sc3_prepare(sce, n_cores = 1)
+    sce <- sc3_prepare(sce, n_cores = 1, rand_seed = 2022)
     str(metadata(sce)$sc3)
 
     ## -----------------------------------------------------------------------------
@@ -268,8 +268,9 @@ if (ONEGO) {
     ## -----------------------------------------------------------------------------
     if (require("mclust")) {
         print(paste("no svm vs. svm:", adjustedRandIndex(no_svm_labels, svm_labels)))
-        print(paste("no svm vs. label:", adjustedRandIndex(no_svm_labels, colData(sce)$cell_type1)))
         print(paste("svm vs. label:", adjustedRandIndex(svm_labels, colData(sce)$cell_type1)))
+        print(paste("no svm vs. label1:", adjustedRandIndex(no_svm_labels, colData(sce)$cell_type1)))
+        print(paste("no svm vs. label2:", adjustedRandIndex(no_svm_labels, colData(sce)$cell_type2)))
     }
 }
 
