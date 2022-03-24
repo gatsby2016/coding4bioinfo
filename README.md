@@ -3,14 +3,22 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
-- 3.24 新增支持Deng数据集；已完成结果比对，但结果和文章不一致，**待排查**。
+- 3.24 新增支持Deng数据集；已完成结果比对，~~但结果和文章不一致，**待排查**。~~ 
+  - **排查与文章不一致**结论：[数据网站](https://hemberg-lab.github.io/scRNA.seq.datasets/mouse/edev/#deng)上写的deng数据是`22431 features and 268 samples`；但是下载下来按照其bash脚本处理后，`22958 features and 267 samples`。
+  - **排查Rcode和python不一致**结论：Rcode经过了一次duplicated后特征维度降为7861维。原因：缺失`feature_symbol`信息。
+  - **问题已修复！！！** [数据网站给的deng.sh生成gene_name.txt时1这里少加了域号$导致txt为空没有维度信息进而导致一系列错误。](https://github.com/gatsby2016/coding4bioinfo/blob/61cc796b8d095be866ebc154d3acdc341adf1be5/SC3/Data/Deng/deng.sh#L53) 现已和`22431 features and 268 samples`数据对齐。
+  - **修复Goolam数据上的稍微差异问题 [On CPM calculation](SC3/Python/SC3.py#L69)**
+  - [调整kmeans聚类](SC3/Python/SC3.py#L41) `Number of time the k-means algorithm will be run with different centroid seeds` 
+  - 排查确定**kmeans随机初始化影响**较大；已对齐kmeans输入的情况下，经过kmeans聚类结果不管是python内部还是python与Rcode都有较大不同；目前暂无法解决该问题。**具体地：deng数据上** 
+    - 在python内部，kmeans的`init`参数指定`random`与默认会导致ARI 0.6648与0.5553的差别；其中，指定`random`主要为了对齐Rcode；
+    - python与Rcode之间，同样`random centroids from row of data`的情况下，会存在0.5553与0.7876的差异。
 - 3.23 新增Goolam数据集及data process R脚本，修复create_sce脚本calculateCPM传参问题；同步更新SC3的R和python脚本支持Goolam数据；目前已完成结果比对，见下表。
 - 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
 
-  | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng |
-  | ------------ | ---------- |----------|----------|----------
-  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | 0.4268(8)|
-  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | 0.592718(6) | 0.3625(9)|
+  | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED)
+  | ------------ | ---------- |----------|----------|---------- | ---------- |
+  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | ~~0.4268(8)~~ 0.4439(9)| 0.7876(9) |
+  | Python       | ~~0.6584~~ 0.7212(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.5553(9) |
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
@@ -79,6 +87,6 @@ coding test for bioinfo, bioinfomatics.
 - ~~python hybrid model with SVM training support~~
 - ~~R code ARI quantitative metric completely compared to Python's~~
 - ~~python plots func support for visualization, such as `sc3_plot_consensus`~~ and `sc3_plot_expression`
-- spearman distance slow calculation
+- ~~spearman distance slow calculation [尝试自己实现python版本和c++版，随着维度上升，效率十分慢于pandas]~~
 - more datasets support
 - dist mearsurement and dims reduction support
