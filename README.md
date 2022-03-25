@@ -3,6 +3,7 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.25 修复Baron数据上获取`n_dim`时的dtype错误；修复gene_filter操作与R不一致问题；原有方式基于count进行filter，然后应用在logcount上，已对齐；继续验证Rcode与Python不一致问题；已确定是kmeans算法问题；Rcode使用`Hartigan-Wong`算法[ref](https://doi.org/10.2307/2346830) or [here](https://sci-hub.se/https://doi.org/10.2307/2346830)；Python使用`Elkan algorithm with random(or kmeans++)`；两者样本迭代过程有差异。
 - 3.24 新增支持Deng数据集；已完成结果比对，~~但结果和文章不一致，**待排查**。~~ 
   - **排查与文章不一致**结论：[数据网站](https://hemberg-lab.github.io/scRNA.seq.datasets/mouse/edev/#deng)上写的deng数据是`22431 features and 268 samples`；但是下载下来按照其bash脚本处理后，`22958 features and 267 samples`。
   - **排查Rcode和python不一致**结论：Rcode经过了一次duplicated后特征维度降为7861维。原因：缺失`feature_symbol`信息。
@@ -18,7 +19,7 @@ coding test for bioinfo, bioinfomatics.
   | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED)
   | ------------ | ---------- |----------|----------|---------- | ---------- |
   | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | ~~0.4268(8)~~ 0.4439(9)| 0.7876(9) |
-  | Python       | ~~0.6584~~ 0.7212(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.5553(9) |
+  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.5553(9) |
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
@@ -90,3 +91,38 @@ coding test for bioinfo, bioinfomatics.
 - ~~spearman distance slow calculation [尝试自己实现python版本和c++版，随着维度上升，效率十分慢于pandas]~~
 - more datasets support
 - dist mearsurement and dims reduction support
+
+
+---------------
+```python
+>>>SC3 algorithm for single cell RNA seq data
+Loading data shape: (8569, 20125)
+After duplicating, data shape: (8569, 20125)
+RUN TIME [sc3_prepare_cluster_flag]: 0.0000 s
+RUN TIME [sc3_determine_n_dims]: 0.0000 s
+RUN TIME [__init__]: 41.2564 s
+>>>Matrix shape: (8569, 5765)
+RUN TIME [sc3_preprocess]: 3.8310 s
+>>>SC3 cal dists: Euclidean
+>>>SC3 cal dists: Pearson
+>>>SC3 cal dists: Spearman
+RUN TIME [sc3_calc_dists]: 18987.0613 s
+>>>SC3 calc transformation: PCA
+>>>SC3 calc transformation: LAPLACIAN
+RUN TIME [sc3_calc_transformation]: 186.7507 s
+D:\Anaconda\envs\sc3\lib\site-packages\sklearn\preprocessing\_data.py:235: UserWarning: Numerical issues were encountered when centering the data and might not be solved. Dataset may contain too large values. You may need to prescale your features.
+  warnings.warn(
+D:\Anaconda\envs\sc3\lib\site-packages\sklearn\preprocessing\_data.py:254: UserWarning: Numerical issues were encountered when scaling the data and might not be solved. The standard deviation of the data is probably very close to 0.
+  warnings.warn(
+RUN TIME [sc3_estimate_k]: 269.5823 s
+RUN TIME [sc3_kmeans]: 1867.0130 s
+RUN TIME [sc3_calc_consensus]: 40.3785 s
+{'37': 0.32207591908841143}
+RUN TIME [cal_metric_ARI_only_cluster]: 0.0483 s
+RUN TIME [sc3_run_cluster_workflow]: 21085.0828 s
+RUN TIME [sc3_run_svm]: 6.9101 s
+{'37': 0.34419732531693253}
+RUN TIME [cal_metric_ARI_global]: 0.0112 s
+RUN TIME [sc3_onego_run]: 21092.0141 s
+RUN TIME [main]: 21133.3016 s
+```
