@@ -61,13 +61,17 @@ class SC3(object):
         print("Loading data shape: {}".format(self.adata.X.shape))
 
         duplicated_symbol = self.adata.var_names.duplicated() #针对性（deng数据）增加特征维度去重
+        tmp_var = self.adata.var
         self.adata = sc.AnnData(self.adata.X[:, ~duplicated_symbol], 
-                                    obs=self.adata.obs, var=self.adata.var[~duplicated_symbol])
+                                    obs=self.adata.obs, var=tmp_var[~duplicated_symbol])
         print("After duplicating, data shape: {}".format(self.adata.X.shape))
 
-        if "Goolam" in data_root or "Baron" in data_root or "reads" in data_root:
+        self.gene_filter_flag = self.gene_filter(self.adata.X, pct_dropout_min, pct_dropout_max) #基于原始输入计算filter_flag
+
+        # NOTE: 经比对 原工作用count处理确定gen_filter_flag, 然后取对应的logcount;其中goolam和Baron中间要加一个CPMnorm
+        if "Goolam" in data_root or "Baron" in data_root: 
             sc.pp.normalize_total(self.adata, target_sum=1e6, exclude_highly_expressed=True) # CPM normalization aligned 
-        
+
         self.adata.uns = dict()
         # self.adata.X # matrix val
         # self.adata.obs # cell name, panda dataframe
@@ -100,9 +104,6 @@ class SC3(object):
         self.d_region_min = d_region_min
         self.d_region_max = d_region_max
         self.MAX_DIM = MAX_DIM
-
-        self.pct_dropout_min = pct_dropout_min
-        self.pct_dropout_max = pct_dropout_max
 
         self.kmeans_nstart = kmeans_nstart
         self.kmeans_iter_max = kmeans_iter_max
@@ -146,8 +147,8 @@ class SC3(object):
     def sc3_determine_n_dims(self):
         num_cell = self.num_samples4cluster
 
-        min_dim = np.floor(self.d_region_min * num_cell).astype(np.uint8)
-        max_dim = np.ceil(self.d_region_max * num_cell).astype(np.uint8)
+        min_dim = np.floor(self.d_region_min * num_cell).astype(np.uint32)
+        max_dim = np.ceil(self.d_region_max * num_cell).astype(np.uint32)
         n_dim = range(min_dim, max_dim + 1) # calc range of dims
         
         # for large datasets restrict the region of dimensions to 15
@@ -156,17 +157,25 @@ class SC3(object):
         
         self.adata.uns["n_dims"] = n_dim
 
+    # gene filter or not, return  FLAG 1 is satisfaction and 0 is need to be filtered.
+    # @matrix: (numpy.array) the origin input: samples(obs) x gen_dims 
+    def gene_filter(self, matrix, pct_dropout_min=0.1, pct_dropout_max=0.9):
+        num_cell = matrix.shape[0]
+        dropouts = (np.sum(matrix == 0, axis=0) / num_cell)
+        gene_filter_flag = (dropouts < pct_dropout_max) & (dropouts > pct_dropout_min)
+
+        return gene_filter_flag # 0 is need to be filtered.
+
 
     # self.adata has been gene filter and log2(X+1) trans. has been aligned to R code.
     @runtime_statistics
     def sc3_preprocess(self):
         # print(">>>SC3 preprocessing")
-        num_cell = self.adata.shape[0]
-
-        sc.pp.filter_genes(self.adata, min_cells=self.pct_dropout_min*num_cell) # align to R code, not equal 
-        sc.pp.filter_genes(self.adata, max_cells=self.pct_dropout_max*num_cell) # gene filter between (min, max)
-        sc.pp.log1p(self.adata, base=2) # log norm
-        print(">>>Matrix shape:", self.adata.shape)
+        sc.pp.log1p(self.adata, base=2) # 先进行log norm
+        tmp_var = self.adata.var
+        self.adata = sc.AnnData(self.adata.X[:, self.gene_filter_flag], var=tmp_var[self.gene_filter_flag], \
+                                    obs=self.adata.obs, uns=self.adata.uns) # 然后保留满足条件的gene
+        print(">>>After gene_filter, data shape:", self.adata.shape)
 
 
     # Estimate the optimal k for k-means clustering: has been aligned to R code
@@ -413,4 +422,5 @@ if __name__ == "__main__":
     anno_root = [os.path.join(root, filename) for filename in anno_root_list]
 
     idx = 4
+    print("Handling dataset: ", anno_root[idx])
     main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0)
