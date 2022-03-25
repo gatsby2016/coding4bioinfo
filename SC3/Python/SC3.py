@@ -290,12 +290,12 @@ class SC3(object):
         
         all_ks_sim_matrix = {}
         for k_val in self.k_range:  # 多个不同聚类k
-            kmeans_cls = KMeans(n_clusters=k_val, init="random", max_iter=int(self.kmeans_iter_max), 
+            kmeans_cls = KMeans(n_clusters=k_val, max_iter=int(self.kmeans_iter_max), 
                                                     n_init=self.times, random_state=self.kmeans_nstart)
             
             k_cluster_matrix = {}
-            for key_, val_matrix in trans_matrix.items(): # 单个k下的dist+transformation组合遍历
-                for d_dim in self.adata.uns["n_dims"]: #单个k下的某一dist+transformation组合的前d_dim维
+            for d_dim in self.adata.uns["n_dims"]: #单个k下的某一dist+transformation组合的前d_dim维
+                for key_, val_matrix in trans_matrix.items(): # 单个k下的dist+transformation组合遍历
                     kmeans_cls.fit(val_matrix[:, :d_dim])
 
                     matrix_key = "_".join(["d", str(d_dim), key_])
@@ -303,6 +303,15 @@ class SC3(object):
             
             assert len(k_cluster_matrix.keys()) == len(self.adata.uns["n_dims"])*len(trans_matrix.keys()) 
             k_sim_matrix = convert_similarity_matrix(k_cluster_matrix, n_cells=val_matrix.shape[0], n_clusters=k_val)
+            """debug validation with Rcode kmeans output
+            # in R: run to SC3/R/SC3.R#L222; then `write.csv(metadata(sce)$sc3$kmeans, "tmp.csv")`
+            # in Python: 
+            rres = sc.read_csv("tmp.csv")
+            aris = {}
+            for idx, keys in enumerate(k_cluster_matrix.keys()):
+                aris[keys] = metrics.adjusted_rand_score(k_cluster_matrix[keys], rres.X[:, idx])
+                print(aris[keys])
+            """
             all_ks_sim_matrix[str(k_val)] = k_sim_matrix
 
         self.adata.uns["all_ks_sim_matrix"] = all_ks_sim_matrix
