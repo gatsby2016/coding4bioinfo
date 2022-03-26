@@ -15,3 +15,13 @@ SC3/Data/Baron/Baron_mouse_export_from_R.csv
 *GSM2230*
 SC3/Data/Deng/deng-reads.txt
 SC3/Data/Deng/deng-rpkms.txt
+
+SC3/Data/Patel*
+
+SC3/Data/Klein/GSE65525_RAW.tar
+SC3/Data/Klein/GSM1599*
+SC3/Data/Klein/klein_export_from_R.csv
+SC3/Data/Klein/cell_types_export_from_R.txt
+
+SC3/R/utils/process_patel_data.R
+SC3/R/sc3source.R

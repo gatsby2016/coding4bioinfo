@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance
+import scipy.stats as ss
 
 
 # //' Graph Laplacian calculation
@@ -45,6 +46,12 @@ def spearman_distance(x, y):
     spearman_corr = x1.corr(y1,method='spearman')
     return 1 - spearman_corr
 
+# calc spearman distance: 1 - spearman_corr by scipy.stats package
+# @matrix: should be (variables x obs)
+def matrix_spearman_distance(matrix): 
+    coefficient, _ = ss.spearmanr(matrix)
+    return 1 - coefficient    
+   
 
 # convert kmeans clustering labels to binary similarity matrix
 # refer to: https://github.com/hemberg-lab/sc3s/blob/master/sc3s/_cluster.py#L124

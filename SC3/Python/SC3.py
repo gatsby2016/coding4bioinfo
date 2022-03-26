@@ -69,7 +69,7 @@ class SC3(object):
         self.gene_filter_flag = self.gene_filter(self.adata.X, pct_dropout_min, pct_dropout_max) #基于原始输入计算filter_flag
 
         # NOTE: 经比对 原工作用count处理确定gen_filter_flag, 然后取对应的logcount;其中goolam和Baron中间要加一个CPMnorm
-        if "Goolam" in data_root or "Baron" in data_root: 
+        if "Goolam" in data_root or "Baron" in data_root or "Klein" in data_root: 
             sc.pp.normalize_total(self.adata, target_sum=1e6, exclude_highly_expressed=True) # CPM normalization aligned 
 
         self.adata.uns = dict()
@@ -220,14 +220,16 @@ class SC3(object):
             CENTERED = True # align to R code
 
             if CENTERED:
-                dists.append(pairwise_distances(data_matrix, metric=pearson_distance_centered))
+                # dists.append(pairwise_distances(data_matrix, metric=pearson_distance_centered))
+                dists.append(1.0-np.corrcoef(data_matrix))
             else:
                 dists.append(pairwise_distances(data_matrix, metric=pearson_distance_nocentered))
             dist_names.append("Pearson")
 
         if Spearman:
             print(">>>SC3 cal dists: Spearman")
-            dists.append(pairwise_distances(data_matrix, metric=spearman_distance))
+            # dists.append(pairwise_distances(data_matrix, metric=spearman_distance))
+            dists.append(matrix_spearman_distance(data_matrix.transpose()))# more efficient
             dist_names.append("Spearman")
         
         if len(dists):
@@ -280,6 +282,8 @@ class SC3(object):
         
         elif isinstance(self.k_range, (list, tuple)):
             pass
+        elif isinstance(self.k_range, int):
+            self.k_range = [self.k_range]
         else:
             try:
                 self.k_range = list(self.k_range)
@@ -304,13 +308,16 @@ class SC3(object):
             assert len(k_cluster_matrix.keys()) == len(self.adata.uns["n_dims"])*len(trans_matrix.keys()) 
             k_sim_matrix = convert_similarity_matrix(k_cluster_matrix, n_cells=val_matrix.shape[0], n_clusters=k_val)
             """debug validation with Rcode kmeans output
-            # in R: run to SC3/R/SC3.R#L222; then `write.csv(metadata(sce)$sc3$kmeans, "tmp.csv")`
+            # in R: run to SC3/R/SC3.R#L224; then `write.csv(metadata(sce)$sc3$kmeans, "tmp.csv")`
             # in Python: 
             rres = sc.read_csv("tmp.csv")
             aris = {}
             for idx, keys in enumerate(k_cluster_matrix.keys()):
                 aris[keys] = metrics.adjusted_rand_score(k_cluster_matrix[keys], rres.X[:, idx])
                 print(aris[keys])
+
+            for idx, keys in enumerate(k_cluster_matrix.keys()): # 将R中结果填到k_cluster_matrix计算后续,一致对齐,证实仅在kmeans有差异
+                k_cluster_matrix[keys] = (rres.X[:, idx] -1).astype(np.int32) 
             """
             all_ks_sim_matrix[str(k_val)] = k_sim_matrix
 
@@ -422,10 +429,10 @@ if __name__ == "__main__":
     root = "SC3/Data/"    
     data_root_list = ["Yan/yan_export_from_R.csv", "biase/biase_export_from_R.csv", 
                         "Goolam/goolam_export_from_R.csv", "Baron/Baron_human_export_from_R.csv",
-                        "Deng/deng_export_from_R_rpkms.csv"]
+                        "Deng/deng_export_from_R_rpkms.csv", "Klein/klein_export_from_R.csv"]
     anno_root_list = ["Yan/cell_types_export_from_R.txt", "biase/cell_types_export_from_R.txt", 
                         "Goolam/cell_types_export_from_R.txt", "Baron/human_cell_types_export_from_R.txt",
-                        "Deng/cell_types_export_from_R.txt"]
+                        "Deng/cell_types_export_from_R.txt", "Klein/cell_types_export_from_R.txt"]
 
     data_root = [os.path.join(root, filename) for filename in data_root_list]
     anno_root = [os.path.join(root, filename) for filename in anno_root_list]
