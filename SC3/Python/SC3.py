@@ -1,7 +1,4 @@
-import sys
 import os
-
-import time
 import math
 
 import numpy as np
@@ -16,17 +13,6 @@ from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.cluster import KMeans, AgglomerativeClustering, Birch
 
 from utils import *
-
-
-# @summary: cal the run time of the function
-def runtime_statistics(func):
-    def wrapper(*args,**kw):
-        start_time = time.time()
-        res = func(*args,**kw)
-        end_time = time.time()
-        print('RUN TIME [{}]: {:.4f} s'.format(func.__name__, (end_time - start_time)))
-        return res
-    return wrapper
 
 
 # SC3 algorithm for single cell RNA seq data
@@ -57,6 +43,8 @@ class SC3(object):
         """
         # print(">>>SC3 init")
         assert data_root is not None, "please pass data root!"
+        self.data_root = data_root
+
         self.adata = sc.read_csv(data_root).transpose() # csv文件中行为基因列为cell sc读进来行列倒置了因此需要转置
         print("Loading data shape: {}".format(self.adata.X.shape))
 
@@ -115,6 +103,7 @@ class SC3(object):
         self.num_samples4cluster = 5000 if self.adata.n_obs > 5000 else int(num_SVM_train)
         if self.num_samples4cluster == 0:
             self.num_samples4cluster = self.adata.n_obs
+        self.adata.uns["num_samples4cluster"] = self.num_samples4cluster
 
         self.sc3_prepare_cluster_flag()
         
@@ -123,11 +112,14 @@ class SC3(object):
     
     # one go run 
     @runtime_statistics
-    def sc3_onego_run(self):
+    def sc3_onego_run(self, write=False):
         # print(">>>SC3 one-go run workflow")
         self.sc3_run_cluster_workflow()
         self.sc3_run_svm()
         self.cal_metric_ARI_global()
+        
+        if write:
+            self.save_results()
 
 
     # run the entire clustering workflow, regardless of svm training.
@@ -149,7 +141,7 @@ class SC3(object):
 
         min_dim = np.floor(self.d_region_min * num_cell).astype(np.uint32)
         max_dim = np.ceil(self.d_region_max * num_cell).astype(np.uint32)
-        n_dim = range(min_dim, max_dim + 1) # calc range of dims
+        n_dim = list(range(min_dim, max_dim + 1)) # calc range of dims
         
         # for large datasets restrict the region of dimensions to 15
         if len(n_dim) > self.MAX_DIM:
@@ -239,6 +231,7 @@ class SC3(object):
             self.process_data = None
             self.dist_names = None
         assert self.process_data is not None, "Please set dists calculation TYPE!"
+        self.adata.uns["dists_matrix"] = self.process_data
 
 
     # Calculate transformations of the distance matrices: has been aligned to R code
@@ -394,10 +387,7 @@ class SC3(object):
         labels = self.adata.obs["category"]
         
         global_res = self.adata.uns["global_res"]
-        ARI = {}
-        for key_, pred in global_res.items():
-            ARI[key_] = metrics.adjusted_rand_score(labels.tolist(), pred)
-        print(ARI)      
+        self.cal_metric_ARI(labels, ks_res=global_res)  
 
 
     # calculate ARI metric only on cluster res
@@ -408,35 +398,17 @@ class SC3(object):
         labels = self.adata.obs["category"][self.adata.obs["samples_cluster_flag"]]
         
         ks_res = self.adata.uns["hcluster_res"]
+        self.cal_metric_ARI(labels, ks_res=ks_res)
+
+
+    @staticmethod
+    def cal_metric_ARI(labels, ks_res):
         ARI = {}
         for key_, pred in ks_res.items():
             ARI[key_] = metrics.adjusted_rand_score(labels.tolist(), pred)
-        print(ARI)        
+        print(ARI)
 
 
-@runtime_statistics
-def main(data_root, anno_root, Krange=None, num4SVM=0):
-    # os.getcwd()
-    print(">>>SC3 algorithm for single cell RNA seq data")
-
-    sc3 = SC3(data_root, anno_root, k_range=Krange, num_SVM_train=num4SVM)
-    sc3.sc3_onego_run()
-
-
-if __name__ == "__main__":
-    np.random.seed(2022)
-    
-    root = "SC3/Data/"    
-    data_root_list = ["Yan/yan_export_from_R.csv", "biase/biase_export_from_R.csv", 
-                        "Goolam/goolam_export_from_R.csv", "Baron/Baron_human_export_from_R.csv",
-                        "Deng/deng_export_from_R_rpkms.csv", "Klein/klein_export_from_R.csv"]
-    anno_root_list = ["Yan/cell_types_export_from_R.txt", "biase/cell_types_export_from_R.txt", 
-                        "Goolam/cell_types_export_from_R.txt", "Baron/human_cell_types_export_from_R.txt",
-                        "Deng/cell_types_export_from_R.txt", "Klein/cell_types_export_from_R.txt"]
-
-    data_root = [os.path.join(root, filename) for filename in data_root_list]
-    anno_root = [os.path.join(root, filename) for filename in anno_root_list]
-
-    idx = 4
-    print("Handling dataset: ", anno_root[idx])
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0)
+    @runtime_statistics
+    def save_results(self):
+        sc.write(os.path.join("../SC3/Results/", self.data_root.split("/")[-2]), self.adata, ext="h5ad")

@@ -1,7 +1,19 @@
+import time
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance
 import scipy.stats as ss
+
+
+# @summary: cal the run time of the function
+def runtime_statistics(func):
+    def wrapper(*args,**kw):
+        start_time = time.time()
+        res = func(*args,**kw)
+        end_time = time.time()
+        print('RUN TIME [{}]: {:.4f} s'.format(func.__name__, (end_time - start_time)))
+        return res
+    return wrapper
 
 
 # //' Graph Laplacian calculation

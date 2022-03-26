@@ -3,23 +3,29 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
-- 3.25 修复Baron数据上获取`n_dim`时的dtype错误；修复gene_filter操作与R不一致问题；原有方式基于count进行filter，然后应用在logcount上，已对齐；继续验证Rcode与Python不一致问题；已确定是kmeans算法问题；Rcode使用`Hartigan-Wong`算法[ref](https://doi.org/10.2307/2346830) or [here](https://sci-hub.se/https://doi.org/10.2307/2346830)；Python使用`Elkan algorithm with random(or kmeans++)`；两者样本迭代过程有差异。
+- 3.26 
+  - 新增支持Klein数据；
+  - python脚本优化计算spearman和pearson距离效率；
+  - 将Rcode结果送入到k_cluster_matrix中进行后续操作，结果和Rcode完全一致；证实整个python workflow仅在kmeans聚类有差异；
+  - run **baron**数据集，目前整个runtime控制在1h以内（57min）；排查结果差的原因：estimate k cluster (37) > true cluster (14)，手动指定k值为14 ARI为0.56
+  - 重构SC3脚本，剥离SC3类文件与main文件；增加对数据变量adata结构的h5ad格式保存与载入，保存位置为`SC3/Results`
+- 3.25 修复Baron数据上获取`n_dim`时的dtype错误；修复gene_filter操作与R不一致问题；原有方式基于count进行filter，然后应用在logcount上，已对齐；继续验证Rcode与Python不一致问题；已确定是kmeans算法问题；Rcode使用`Hartigan-Wong`算法[ref](https://doi.org/10.2307/2346830) or [here](https://sci-hub.se/https://doi.org/10.2307/2346830)；Python使用`Elkan algorithm with random(or kmeans++)`；两者样本迭代过程有差异。[排查确定方式](SC3/Python/SC3.py#L303)
 - 3.24 新增支持Deng数据集；已完成结果比对，~~但结果和文章不一致，**待排查**。~~ 
   - **排查与文章不一致**结论：[数据网站](https://hemberg-lab.github.io/scRNA.seq.datasets/mouse/edev/#deng)上写的deng数据是`22431 features and 268 samples`；但是下载下来按照其bash脚本处理后，`22958 features and 267 samples`。
   - **排查Rcode和python不一致**结论：Rcode经过了一次duplicated后特征维度降为7861维。原因：缺失`feature_symbol`信息。
-  - **问题已修复！！！** [数据网站给的deng.sh生成gene_name.txt时1这里少加了域号$导致txt为空没有维度信息进而导致一系列错误。](https://github.com/gatsby2016/coding4bioinfo/blob/61cc796b8d095be866ebc154d3acdc341adf1be5/SC3/Data/Deng/deng.sh#L53) 现已和`22431 features and 268 samples`数据对齐。
-  - **修复Goolam数据上的稍微差异问题 [On CPM calculation](SC3/Python/SC3.py#L69)**
-  - [调整kmeans聚类](SC3/Python/SC3.py#L41) `Number of time the k-means algorithm will be run with different centroid seeds` 
+  - **问题已修复！！！** [数据网站给的deng.sh生成gene_name.txt时1这里少加了域号$导致txt为空没有维度信息进而导致一系列错误。](SC3/Data/Deng/deng.sh#L53) 现已和`22431 features and 268 samples`数据对齐。
+  - **修复Goolam数据上的稍微差异问题 [On CPM calculation](SC3/Python/SC3.py#L61)**
+  - [调整kmeans聚类](SC3/Python/SC3.py#L27) `Number of time the k-means algorithm will be run with different centroid seeds` 
   - 排查确定**kmeans随机初始化影响**较大；已对齐kmeans输入的情况下，经过kmeans聚类结果不管是python内部还是python与Rcode都有较大不同；目前暂无法解决该问题。**具体地：deng数据上** 
     - 在python内部，kmeans的`init`参数指定`random`与默认会导致ARI 0.6648与0.5553的差别；其中，指定`random`主要为了对齐Rcode；
     - python与Rcode之间，同样`random centroids from row of data`的情况下，会存在0.5553与0.7876的差异。
 - 3.23 新增Goolam数据集及data process R脚本，修复create_sce脚本calculateCPM传参问题；同步更新SC3的R和python脚本支持Goolam数据；目前已完成结果比对，见下表。
 - 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
 
-  | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED)
-  | ------------ | ---------- |----------|----------|---------- | ---------- |
-  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | ~~0.4268(8)~~ 0.4439(9)| 0.7876(9) |
-  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.5553(9) |
+  | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED) | Klein | Baron |
+  | ------------ | ---------- |----------|----------|---------- | ---------- | ---------- | ---------- |
+  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | ~~0.4268(8)~~ 0.4439(9)| 0.7876(9) | 0.6178(12) | - |
+  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.6648(9) | 0.7291(12)| 0.3276(37) |
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
@@ -88,41 +94,7 @@ coding test for bioinfo, bioinfomatics.
 - ~~python hybrid model with SVM training support~~
 - ~~R code ARI quantitative metric completely compared to Python's~~
 - ~~python plots func support for visualization, such as `sc3_plot_consensus`~~ and `sc3_plot_expression`
-- ~~spearman distance slow calculation [尝试自己实现python版本和c++版，随着维度上升，效率十分慢于pandas]~~
-- more datasets support
+- ~~spearman distance slow calculation [尝试自己实现python版本和c++版，随着维度上升，效率十分慢于pandas；已优化，替换pandas计算为scipy.stats.spearmanr]~~
+- ~~more datasets support [add deng, goolam, klein and baron dataset, others cannot downloaded from hemberg-lab site]~~
 - dist mearsurement and dims reduction support
-
-
----------------
-```python
->>>SC3 algorithm for single cell RNA seq data
-Loading data shape: (8569, 20125)
-After duplicating, data shape: (8569, 20125)
-RUN TIME [sc3_prepare_cluster_flag]: 0.0000 s
-RUN TIME [sc3_determine_n_dims]: 0.0000 s
-RUN TIME [__init__]: 41.2564 s
->>>Matrix shape: (8569, 5765)
-RUN TIME [sc3_preprocess]: 3.8310 s
->>>SC3 cal dists: Euclidean
->>>SC3 cal dists: Pearson
->>>SC3 cal dists: Spearman
-RUN TIME [sc3_calc_dists]: 18987.0613 s
->>>SC3 calc transformation: PCA
->>>SC3 calc transformation: LAPLACIAN
-RUN TIME [sc3_calc_transformation]: 186.7507 s
-D:\Anaconda\envs\sc3\lib\site-packages\sklearn\preprocessing\_data.py:235: UserWarning: Numerical issues were encountered when centering the data and might not be solved. Dataset may contain too large values. You may need to prescale your features.
-  warnings.warn(
-D:\Anaconda\envs\sc3\lib\site-packages\sklearn\preprocessing\_data.py:254: UserWarning: Numerical issues were encountered when scaling the data and might not be solved. The standard deviation of the data is probably very close to 0.
-  warnings.warn(
-RUN TIME [sc3_estimate_k]: 269.5823 s
-RUN TIME [sc3_kmeans]: 1867.0130 s
-RUN TIME [sc3_calc_consensus]: 40.3785 s
-{'37': 0.32207591908841143}
-RUN TIME [cal_metric_ARI_only_cluster]: 0.0483 s
-RUN TIME [sc3_run_cluster_workflow]: 21085.0828 s
-RUN TIME [sc3_run_svm]: 6.9101 s
-{'37': 0.34419732531693253}
-RUN TIME [cal_metric_ARI_global]: 0.0112 s
-RUN TIME [sc3_onego_run]: 21092.0141 s
-RUN TIME [main]: 21133.3016 s
-```
+- further analysis implementation on the cluster results
