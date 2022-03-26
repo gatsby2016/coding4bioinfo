@@ -44,6 +44,30 @@ arma::mat tmult(arma::mat x) {
     return(x.t()*x);
 }
 
+//' Compute Euclidean distance matrix by columns
+//' 
+//' Used in sc3-funcs.R distance matrix calculation
+//' and within the consensus clustering.
+//' 
+//' @param x A numeric matrix.
+// [[Rcpp::export]]
+Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
+	unsigned int outcols = x.ncol(), i = 0, j = 0;
+	double d;
+	Rcpp::NumericMatrix out(outcols, outcols);
+
+	for (j = 0; j < outcols - 1; j++) {
+	    Rcpp::NumericVector v1 = x.column(j);
+		for (i = j + 1; i < outcols; i++) {
+			d = sqrt(sum(pow(v1 - x.column(i), 2.0)));
+			out(i, j) = d;
+			out(j, i) = d;
+		}
+	}
+
+	return out;
+}
+
 // You can include R code blocks in C++ files processed with sourceCpp
 // (useful for testing and development). The R code will be automatically 
 // run after the compilation.

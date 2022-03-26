@@ -18,8 +18,8 @@ library(SC3)
 library(scater)
 
 ONEGO <- FALSE
-Alldata <- c("Yan", "Biase", "Goolam", "Deng", "Baron")
-DATA_NAME <- Alldata[4]
+Alldata <- c("Yan", "Biase", "Goolam", "Deng", "Baron", "Klein")
+DATA_NAME <- Alldata[6]
 if (DATA_NAME == "Yan") {
     head(ann)
     yan[1:3, 1:3] # vis yan data
@@ -79,6 +79,8 @@ if (DATA_NAME == "Yan") {
     colData(sce)$cell_type1
     colData(sce)$cell_type2
     assayNames(sce)
+} else if(DATA_NAME == "Klein"){
+    sce <- readRDS("SC3/Data/Klein/klein.rds")
 }
 
 
