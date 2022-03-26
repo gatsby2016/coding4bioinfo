@@ -25,3 +25,4 @@ SC3/Data/Klein/cell_types_export_from_R.txt
 
 SC3/R/utils/process_patel_data.R
 SC3/R/sc3source.R
+*h5ad
