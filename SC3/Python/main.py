@@ -10,12 +10,12 @@ from utils import runtime_statistics
 
 
 @runtime_statistics
-def main(data_root, anno_root, Krange=None, num4SVM=0):
+def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True):
     # os.getcwd()
     print(">>>SC3 algorithm for single cell RNA seq data")
 
     DATASET = data_root.split("/")[-2]
-    if os.path.exists("SC3/Results/") and os.path.isfile(os.path.join("SC3/Results/", DATASET+".h5ad")):
+    if LOAD and os.path.exists("SC3/Results/") and os.path.isfile(os.path.join("SC3/Results/", DATASET+".h5ad")):
         print("Find h5ad file in {}, will load it and skip running".format(os.path.join("SC3/Results/")))
 
         adata = sc.read(os.path.join("../SC3/Results/", DATASET), ext="h5ad")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     data_root = [os.path.join(root, filename) for filename in data_root_list]
     anno_root = [os.path.join(root, filename) for filename in anno_root_list]
 
-    idx = 2
+    idx = 3
     print("Handling dataset: ", anno_root[idx])
 
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0)
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=True)

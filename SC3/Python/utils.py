@@ -27,12 +27,14 @@ def norm_laplacian(matrix, n_component=None):
     A *= D_row.transpose()
     res = np.eye(A.shape[-1], A.shape[-1]) - A # has been aligned to R code
 
-    vectors, evals, _ = np.linalg.svd(res)
-    inds = np.argsort(evals) # 倒序 从小到大排序
-    if n_component is None:
-        return vectors[:, inds]
-    else:
-        return vectors[:, inds[:n_component]]
+    # vectors, evals, _ = np.linalg.svd(res)
+    # inds = np.argsort(evals) # 倒序 从小到大排序
+    # if n_component is None:
+    #     return vectors[:, inds]
+    # else:
+    #     return vectors[:, inds[:n_component]]
+    evals, vectors = np.linalg.eigh(res) # only real symmetric matrix factorized 
+    return vectors[:, -n_component:] # fixed! get top-k eignvaules' eignvectors
 
 
 # 3 pearson distance calculation method: 1st, pearson_distance_centered aligned to R code
