@@ -3,6 +3,17 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.27
+  - 完成Rcode中Baron数据svm mixed model实验验证对比；
+  - 验证dist calculation中remove spearman dist的结果；【分析：spearman相关系数对分量排序离散化，可以理解为筛选当前cell的marker gene 同时确定pairwise的cell是否也具有同样趋势；】
+  - 距离度量部分：是否需要修改现有euclidean距离度量为标准化euclidean距离，以消除不同维度分量量纲影响；【分析：修改现有euclidean为标准化没有意义，因为对于某个样本来说，某个gene可能的确是marker gene，进而导致在该样本下gene expression value higher but lower in other cells. 同时其他gene的expression lower。】
+  - 把kmeans结果之后CSPA之前的multi-res直接ARI分析。【**发现**：laplacian采用后k个特征值对应的特征向量作为降维进行kmeans结果ARI和pca降维kmeans结果相似；而采用前k个特征值对应的特征向量的kmeans后几乎都预测为一类，导致ARI很低！所以，尝试将laplacian降维关闭！结果见下表！】
+  - 距离度量添加JS散度距离；结果有下降，耗时巨大；
+  - 降维部分增加基于优化的非线性降维UMAP算法；优化学习由于收敛问题引入了不确定性；
+  - 距离度量后，Pearson和spearman距离范围都是[0,2],但是欧式距离没有上限；已进行归一化。欧式距离先对样本单位化再归一化。结果没有提升；
+  - 推导原方案与kernelPCA的关联；
+    - ![proof1](docs/proof1.png)
+    - ![proof2](docs/proof2.png)
 - 3.26 
   - 新增支持Klein数据；
   - python脚本优化计算spearman和pearson距离效率；
@@ -22,11 +33,17 @@ coding test for bioinfo, bioinfomatics.
 - 3.23 新增Goolam数据集及data process R脚本，修复create_sce脚本calculateCPM传参问题；同步更新SC3的R和python脚本支持Goolam数据；目前已完成结果比对，见下表。
 - 3.22 1. 新增支持R code based SC3 workflow定量结果输出，直接run脚本即可。实现Rcode和python的横向比对。2. 增加层次聚类后一致性矩阵图绘制。
 
-  | Data (ARI metric) | Yan   | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED) | Klein | Baron |
-  | ------------ | ---------- |----------|----------|---------- | ---------- | ---------- | ---------- |
-  | Rcode        | 0.6584(est_k=6)     | 0.9871(5)   | 0.597345(6) | ~~0.4268(8)~~ 0.4439(9)| 0.7876(9) | 0.6178(12) | 0.2977(37) |
-  | Python       | 0.6584(est_k=6)     | 0.9871(5)   | ~~0.592718~~ 0.597345(6) | ~~0.3625(9)~~ 0.3827(9)| 0.6648(9) | 0.7291(12)| 0.3276(37) |
-  |fix trans laplacian| 0.9147(6)|0.9709(5)|0.5242(6)|0.4021(9)| 0.7346(9) | 0.8153(12)| 0.3846(37)|
+  | ARI  (est_k)          | Yan        | Biase    | Goolam   |  Deng1 (FIXED) |  Deng2 (FIXED) | Klein      | Baron      |
+  | ------------          | ---------- |----------|----------|----------      | ----------     | ---------- | ---------- |
+  | Rcode                 | 0.6584(6)  | 0.9871(5)| 0.5973(6)| ~~0.4268(8)~~ 0.4439(9)| 0.7876(9)| 0.6178(12)| 0.2977(37)|
+  | Python(base)          | 0.6584(6)  | 0.9871(5)| 0.5973(6)| ~~0.3625(9)~~ 0.3827(9)| 0.6648(9)| 0.7291(12)| 0.3276(37)|
+  |+ normdists            | 0.6584(6)  | 0.9871(5)| 0.5973(6)|               0.3647(9)| 0.6557(9)| 0.6870(12)| -         |
+  |- laplacian            | 0.7212(6)  | 0.9839(5)| 0.5973(6)|               0.4333(9)| 0.7745(9)| 0.8224(12)| 0.4179(37)|
+  |- laplacian + normdists| 0.6584(6)  | 0.9394(5)| 0.5860(6)|               0.4504(9)| 0.7975(9)| 0.6141(12)| 0.2983(37)|
+  |- laplacian + JS dist  | 0.7080(6)  | 0.9839(5)| 0.5973(6)|               0.3023(9)| 0.5858(9)| 0.8070(12)| - |
+  |- laplacian + UMAP*    | 0.7902(6)  | 0.8302(5)| 0.5927(6)|               0.3606(9)| 0.6616(9)| 0.5548(12)| - |
+  |- laplacian - spearman | 0.7212(6)  | 0.9839(5)| 0.5973(6)|               0.4440(9)| 0.7888(9)| 0.8247(12)| 0.3757(37)|
+  |~~(BUG) fix laplacian~~| 0.9147(6)  | 0.9709(5)| 0.5242(6)|               0.4021(9)| 0.7346(9)| 0.8153(12)| 0.3846(37)|
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
@@ -46,8 +63,13 @@ coding test for bioinfo, bioinfomatics.
 - [PCA的数学原理](http://blog.codinglabs.org/articles/pca-tutorial.html)
 - [延申阅读KPCA](https://blog.csdn.net/lyn5284767/article/details/81509059)
 - [理解不同的距离度量和降维方法](https://github.com/sxwenny/job/blob/master/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.md)
-- 一些后续可以尝试的思路。线性降维：SVD、非线性降维：KPCA、LLE(Local linearly embedding)、autoencoder and tSNE。
-
+- 一些后续可以尝试的思路。特征分解角度；学习embedding（非线性）角度：KPCA、LLE(Local linearly embedding)、autoencoder and tSNE， UMAP。
+- [Ten quick tips for effective dimensionality reduction](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006907) and [相异性矩阵降维](https://baijiahao.baidu.com/s?id=1638747337747160251&wfr=spider&for=pc)
+- [Paper:Evaluation of UMAP as an alternative to t-SNE for single-cell data](https://www.biorxiv.org/content/10.1101/298430v1.full)
+- [表征图数据，图embedding](https://baijiahao.baidu.com/s?id=1672090485285983725&wfr=spider&for=pc)
+- [拉普拉斯谱聚类](https://cloud.tencent.com/developer/article/1155839)
+- [从PCA到PCoA到KPCA](https://blog.csdn.net/janehong1314/article/details/86618311) and [PCoA分析](https://www.cnblogs.com/lyon2014/p/3991058.html)
+- [矩阵获取距离度量矩阵](https://blog.csdn.net/frankzd/article/details/80251042)
 ----------------------
 
 
@@ -99,3 +121,12 @@ coding test for bioinfo, bioinfomatics.
 - ~~more datasets support [add deng, goolam, klein and baron dataset, others cannot downloaded from hemberg-lab site]~~
 - dist mearsurement and dims reduction support
 - further analysis implementation on the cluster results
+
+
+## 工程优化考虑
+- 特征选择 [特征选择策略]
+- 距离度量 []
+- 特征分解进行降维 []
+- kmeans聚类 []
+- CSPA combination [assign weights]
+- 层次聚类 
