@@ -179,7 +179,11 @@ class SC3(object):
         sigmaTW = (math.sqrt(num_gene - 1) + math.sqrt(num_cell)) * pow((1/math.sqrt(num_gene - 1) + 1/math.sqrt(num_cell)), 1/3)
         bd = 3.273 * sigmaTW + muTW  # 3.2730 is the p=0.001 percentile point for the Tracy-Widom distribution
 
-        x = preprocessing.scale(self.adata.X, axis=1) # warning TB fixed 
+        # x = preprocessing.scale(self.adata.X, axis=1) # warning TB fixed
+        stscale = preprocessing.StandardScaler()
+        stscale.fit(self.adata.X.transpose())
+        x = stscale.transform(self.adata.X.transpose()).transpose() # standard scale on samples, why?
+
         sigmaHatNaive = np.matmul(x, x.transpose())
         
         # compute eigenvalues and return the amount which falls above the bound
@@ -196,14 +200,23 @@ class SC3(object):
     # Calculate a distance matrix: has been aligned to R code
     #  Distance between the cells are calculated using `Euclidean, Pearson and Spearman` metrics to construct.
     @runtime_statistics
-    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=True):
+    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=False, JS=False):
         # print(">>>SC3 cal dists")
         data_matrix = self.adata.X[self.adata.obs["samples_cluster_flag"], :]
 
         dists = []
         dist_names = []
+
+        if JS:
+            print(">>>SC3 cal dists: JS distance")
+            dists.append(pairwise_distances(data_matrix, metric=JS_distance)) # JS distance calc will spend more time
+            dist_names.append("JS")
+            
         if Euclidean:
             print(">>>SC3 cal dists: Euclidean")
+            # mod_sample = np.sqrt(np.sum(np.power(data_matrix, 2), axis=1)).reshape(-1, 1) # (n_cell, 1)
+            #求得data matrix的每个样本的特征向量模长；然后每个样本除以模长转换为单位向量，计算距离；此时最小为0，最大为2；then /2归一化
+            # dists.append(pairwise_distances(data_matrix/mod_sample, metric="euclidean")/2)
             dists.append(pairwise_distances(data_matrix, metric="euclidean"))
             dist_names.append("Euclidean")
         
@@ -213,6 +226,7 @@ class SC3(object):
 
             if CENTERED:
                 # dists.append(pairwise_distances(data_matrix, metric=pearson_distance_centered))
+                # dists.append(1.0-np.abs(np.corrcoef(data_matrix))) # restrict to [0,1]
                 dists.append(1.0-np.corrcoef(data_matrix))
             else:
                 dists.append(pairwise_distances(data_matrix, metric=pearson_distance_nocentered))
@@ -236,7 +250,7 @@ class SC3(object):
 
     # Calculate transformations of the distance matrices: has been aligned to R code
     @runtime_statistics
-    def sc3_calc_transformation(self, pca=True, laplacian=True):
+    def sc3_calc_transformation(self, pca=True, laplacian=False, umap=False):
         # print(">>>SC3 calc transformation")
         dists_matrix = self.process_data
         n_component = max(self.adata.uns["n_dims"])
@@ -251,6 +265,7 @@ class SC3(object):
                 key_ = "pca_" + self.dist_names[idx]
 
                 pca_cls.fit(preprocessing.scale(dists_matrix[..., idx], axis=0, copy=True)) # has been aligned to R code
+                # pca_cls.fit(dists_matrix[..., idx]) # norm dists实验；因样本已经归一化, 此时不再需要进行标准化
                 # _ = pca_cls.transform(dists_matrix[..., idx])
                 trans_dicts[key_] = pca_cls.components_.transpose()                    
 
@@ -262,6 +277,14 @@ class SC3(object):
                 components_ = norm_laplacian(dists_matrix[..., idx], n_component) # has been aligned to R code
                 trans_dicts[key_] = components_
         
+        if umap:
+            print(">>>SC3 calc transformation: UMAP")
+
+            for idx in range(dists_matrix.shape[-1]):
+                key_ = "umap_" + self.dist_names[idx]
+                components_ = umap_embedding(dists_matrix[..., idx], n_component)
+                trans_dicts[key_] = components_
+
         self.adata.uns["trans_matrix"] = trans_dicts # trans_dicts are set to anndata.uns for k-means
 
 

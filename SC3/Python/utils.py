@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import distance
 import scipy.stats as ss
+import umap
 
 
 # @summary: cal the run time of the function
@@ -14,6 +15,15 @@ def runtime_statistics(func):
         print('RUN TIME [{}]: {:.4f} s'.format(func.__name__, (end_time - start_time)))
         return res
     return wrapper
+
+
+# umap embedding dimensional reduction
+def umap_embedding(matrix, n_component=None):
+    if n_component is None:
+        umapred = umap.UMAP()
+    else:
+        umapred = umap.UMAP(n_components=n_component)
+    return umapred.fit_transform(matrix)
 
 
 # //' Graph Laplacian calculation
@@ -34,7 +44,16 @@ def norm_laplacian(matrix, n_component=None):
     # else:
     #     return vectors[:, inds[:n_component]]
     evals, vectors = np.linalg.eigh(res) # only real symmetric matrix factorized 
-    return vectors[:, -n_component:] # fixed! get top-k eignvaules' eignvectors
+    return vectors[:, :n_component] # get bottom-k eignvaules' eignvectors
+
+
+# calculate JS distance
+def JS_distance(x, y):
+    m = (x+y)/2
+    dis = (ss.entropy(x, m, base=2)+ss.entropy(y, m, base=2))*0.5
+    if dis > 1:
+        dis = 1
+    return dis
 
 
 # 3 pearson distance calculation method: 1st, pearson_distance_centered aligned to R code
@@ -64,7 +83,8 @@ def spearman_distance(x, y):
 # @matrix: should be (variables x obs)
 def matrix_spearman_distance(matrix): 
     coefficient, _ = ss.spearmanr(matrix)
-    return 1 - coefficient    
+    return 1 - coefficient
+    # return 1 - np.abs(coefficient)
    
 
 # convert kmeans clustering labels to binary similarity matrix

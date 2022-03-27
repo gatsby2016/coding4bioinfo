@@ -1,4 +1,3 @@
-from asyncore import write
 import sys
 import os
 import numpy as np
@@ -10,7 +9,7 @@ from utils import runtime_statistics
 
 
 @runtime_statistics
-def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True):
+def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True, WRITE=True):
     # os.getcwd()
     print(">>>SC3 algorithm for single cell RNA seq data")
 
@@ -32,7 +31,7 @@ def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True):
         print("Do NOT find h5ad file in {}, will run directly".format(os.path.join("SC3/Results/")))
 
         sc3 = SC3(data_root, anno_root, k_range=Krange, num_SVM_train=num4SVM)
-        sc3.sc3_onego_run(write=True)
+        sc3.sc3_onego_run(write=WRITE)
 
 
 if __name__ == "__main__":
@@ -52,4 +51,4 @@ if __name__ == "__main__":
     idx = 3
     print("Handling dataset: ", anno_root[idx])
 
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=True)
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=False, WRITE=False)
