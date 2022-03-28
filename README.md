@@ -3,6 +3,9 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.28
+  - 主要完成workflow与PCoA及KPCA的关联[推导证明](docs/proof.pdf)
+  - 基于推导结果验证修改距离度量为RBF kernel计算，并直接进行特征分解，结果较差，待更新
 - 3.27
   - 完成Rcode中Baron数据svm mixed model实验验证对比；
   - 验证dist calculation中remove spearman dist的结果；【分析：spearman相关系数对分量排序离散化，可以理解为筛选当前cell的marker gene 同时确定pairwise的cell是否也具有同样趋势；】
@@ -12,8 +15,8 @@ coding test for bioinfo, bioinfomatics.
   - 降维部分增加基于优化的非线性降维UMAP算法；优化学习由于收敛问题引入了不确定性；
   - 距离度量后，Pearson和spearman距离范围都是[0,2],但是欧式距离没有上限；已进行归一化。欧式距离先对样本单位化再归一化。结果没有提升；
   - 推导原方案与kernelPCA的关联；
-    - ![proof1](docs/proof1.png)
-    - ![proof2](docs/proof2.png)
+    - [proof1](docs/proof1.png)
+    - [proof2](docs/proof2.png)
 - 3.26 
   - 新增支持Klein数据；
   - python脚本优化计算spearman和pearson距离效率；
@@ -39,11 +42,11 @@ coding test for bioinfo, bioinfomatics.
   | Python(base)          | 0.6584(6)  | 0.9871(5)| 0.5973(6)| ~~0.3625(9)~~ 0.3827(9)| 0.6648(9)| 0.7291(12)| 0.3276(37)|
   |+ normdists            | 0.6584(6)  | 0.9871(5)| 0.5973(6)|               0.3647(9)| 0.6557(9)| 0.6870(12)| -         |
   |- laplacian            | 0.7212(6)  | 0.9839(5)| 0.5973(6)|               0.4333(9)| 0.7745(9)| 0.8224(12)| 0.4179(37)|
+  |- laplacian pca->decom | 0.6584(6)  | 0.9839(5)| 0.5973(6)|               0.4642(9)| 0.8176(9)| 0.5312(12)| - |
   |- laplacian + normdists| 0.6584(6)  | 0.9394(5)| 0.5860(6)|               0.4504(9)| 0.7975(9)| 0.6141(12)| 0.2983(37)|
   |- laplacian + JS dist  | 0.7080(6)  | 0.9839(5)| 0.5973(6)|               0.3023(9)| 0.5858(9)| 0.8070(12)| - |
   |- laplacian + UMAP*    | 0.7902(6)  | 0.8302(5)| 0.5927(6)|               0.3606(9)| 0.6616(9)| 0.5548(12)| - |
   |- laplacian - spearman | 0.7212(6)  | 0.9839(5)| 0.5973(6)|               0.4440(9)| 0.7888(9)| 0.8247(12)| 0.3757(37)|
-  |~~(BUG) fix laplacian~~| 0.9147(6)  | 0.9709(5)| 0.5242(6)|               0.4021(9)| 0.7346(9)| 0.8153(12)| 0.3846(37)|
 
 - 3.21 新增支持基于SVM-mixed hybrid model 并且重构SC3类
   - hybrid model `50 cluster+40 svm`：`Yan:{'6': 0.6913063345361797}` 耗时也有近半下降
