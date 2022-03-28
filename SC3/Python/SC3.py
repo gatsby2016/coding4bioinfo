@@ -200,7 +200,7 @@ class SC3(object):
     # Calculate a distance matrix: has been aligned to R code
     #  Distance between the cells are calculated using `Euclidean, Pearson and Spearman` metrics to construct.
     @runtime_statistics
-    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=False, JS=False):
+    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=True, JS=False, Kernel=False):
         # print(">>>SC3 cal dists")
         data_matrix = self.adata.X[self.adata.obs["samples_cluster_flag"], :]
 
@@ -238,6 +238,11 @@ class SC3(object):
             dists.append(matrix_spearman_distance(data_matrix.transpose()))# more efficient
             dist_names.append("Spearman")
         
+        if Kernel:
+            print(">>>SC3 cal dists: Kernel")
+            dists.append(metrics.pairwise_kernels(data_matrix))
+            dist_names.append("Kernel")
+
         if len(dists):
             self.process_data = np.stack(dists, axis=-1) # stack and add new axis 
             self.dist_names = dist_names
@@ -250,7 +255,7 @@ class SC3(object):
 
     # Calculate transformations of the distance matrices: has been aligned to R code
     @runtime_statistics
-    def sc3_calc_transformation(self, pca=True, laplacian=False, umap=False):
+    def sc3_calc_transformation(self, pca=False, laplacian=False, umap=False, decom=True):
         # print(">>>SC3 calc transformation")
         dists_matrix = self.process_data
         n_component = max(self.adata.uns["n_dims"])
@@ -284,6 +289,13 @@ class SC3(object):
                 key_ = "umap_" + self.dist_names[idx]
                 components_ = umap_embedding(dists_matrix[..., idx], n_component)
                 trans_dicts[key_] = components_
+        
+        if decom:
+            print(">>>SC3 calc transformation: DECOMPOSITION")
+            for idx in range(dists_matrix.shape[-1]):
+                key_ = "decom_" + self.dist_names[idx]
+                _, vectors = np.linalg.eigh(dists_matrix[..., idx]) # only real symmetric matrix factorized 
+                trans_dicts[key_] = vectors[:, :n_component]
 
         self.adata.uns["trans_matrix"] = trans_dicts # trans_dicts are set to anndata.uns for k-means
 
@@ -322,6 +334,7 @@ class SC3(object):
                     k_cluster_matrix[matrix_key] = kmeans_cls.labels_
             
             assert len(k_cluster_matrix.keys()) == len(self.adata.uns["n_dims"])*len(trans_matrix.keys()) 
+            # self.cal_metric_ARI(self.adata.obs["category"][self.adata.obs["samples_cluster_flag"]], k_cluster_matrix)
             k_sim_matrix = convert_similarity_matrix(k_cluster_matrix, n_cells=val_matrix.shape[0], n_clusters=k_val)
             """debug validation with Rcode kmeans output
             # in R: run to SC3/R/SC3.R#L224; then `write.csv(metadata(sce)$sc3$kmeans, "tmp.csv")`
