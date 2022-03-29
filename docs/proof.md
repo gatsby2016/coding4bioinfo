@@ -64,11 +64,11 @@ PCoA中，对dissimilaity matrix构建离差矩阵（实对称矩阵），该矩
 
 进而，$D_{d*d} = U\cdot\Lambda\cdot U^{T} = U\cdot\Lambda^{\frac{1}{2}}\Lambda^{\frac{1}{2}}\cdot U^{T}$，   
 
-$C = \Lambda^{\frac{1}{2}}\cdot U^{T}$即为坐标矩阵； 即取前$k$个特征值对应的特征向量按行组成，并乘各自特征值的平凡根，即为PCoA输出。
+$C = \Lambda^{\frac{1}{2}}\cdot U^{T}$即为坐标矩阵； 即取前$k$个特征值对应的特征向量按行组成，并乘各自特征值的平方根，即为PCoA输出。
 
 
 当前方案中，  
 workflow先对输入矩阵$X_{m*n}$进行距离度量获得dissimilaity matrix $M_{n*n}$；  
 然后计算协方差矩阵$T_{n*n}$，等价于PCoA中获得离差矩阵；  
 然后对$T_{n*n}$进行特征分解获取前$k$个特征值对应特征向量，相当于$C = U^{T}$而没有考虑特征值。  
-此外，有一点值得注意，workflow中dissimilaity matrix送入PCA中之前经过了一次数据标准化，导致原本dissimilaity matrix的数据结构性被破坏了。也就不满足PCoA的输入形式。因此，从这两个角度理解下来，**workflow做法都不等价于PCoA**。
+此外，有一点值得注意，workflow中dissimilaity matrix送入PCA中之前经过了一次数据标准化，导致原本dissimilaity matrix的数据对称性被破坏了。也就不满足PCoA的输入形式。因此，从这两个角度理解下来，**workflow做法都不等价于PCoA**。
