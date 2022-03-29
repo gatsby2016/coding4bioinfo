@@ -1,7 +1,8 @@
 import sys
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 import scanpy as sc
 
 from SC3 import SC3
@@ -22,6 +23,9 @@ def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True, WRITEROOT=None
 
         print("===========Only Cluster results ARI metrics")
         SC3.cal_metric_ARI(adata.obs["category"][adata.obs["samples_cluster_flag"]], adata.uns["hcluster_res"])
+        for key_, val in adata.uns["all_ks_sim_matrix"].items():
+            fig = sns.clustermap(val, method="complete", cmap="jet")
+            fig.savefig("SC3/Results/{}_clustermap_{}.png".format(DATASET, key_), dpi=400)
 
         if "global_res" in adata.uns.keys():
             print("===========Global results ARI metrics on mixed model with SVM")
@@ -51,4 +55,4 @@ if __name__ == "__main__":
     idx = 3
     print("Handling dataset: ", anno_root[idx])
 
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=False, WRITEROOT=None)
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=True, WRITEROOT="rbf")
