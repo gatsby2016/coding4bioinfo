@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import scanpy as sc
 from sklearn import preprocessing, decomposition, svm
-from sklearn import metrics
+from sklearn import metrics, manifold
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.cluster import KMeans, AgglomerativeClustering, Birch
 
@@ -112,14 +112,13 @@ class SC3(object):
     
     # one go run 
     @runtime_statistics
-    def sc3_onego_run(self, write=False):
+    def sc3_onego_run(self, writeroot=None):
         # print(">>>SC3 one-go run workflow")
         self.sc3_run_cluster_workflow()
         self.sc3_run_svm()
         self.cal_metric_ARI_global()
         
-        if write:
-            self.save_results()
+        self.save_results(writeroot)
 
 
     # run the entire clustering workflow, regardless of svm training.
@@ -200,7 +199,7 @@ class SC3(object):
     # Calculate a distance matrix: has been aligned to R code
     #  Distance between the cells are calculated using `Euclidean, Pearson and Spearman` metrics to construct.
     @runtime_statistics
-    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=True, JS=False, Kernel=False):
+    def sc3_calc_dists(self, Euclidean=True, Pearson=True, Spearman=False, JS=False, Kernel=True):
         # print(">>>SC3 cal dists")
         data_matrix = self.adata.X[self.adata.obs["samples_cluster_flag"], :]
 
@@ -240,7 +239,7 @@ class SC3(object):
         
         if Kernel:
             print(">>>SC3 cal dists: Kernel")
-            dists.append(metrics.pairwise_kernels(data_matrix))
+            dists.append(metrics.pairwise_kernels(data_matrix, metric="rbf"))
             dist_names.append("Kernel")
 
         if len(dists):
@@ -255,7 +254,7 @@ class SC3(object):
 
     # Calculate transformations of the distance matrices: has been aligned to R code
     @runtime_statistics
-    def sc3_calc_transformation(self, pca=False, laplacian=False, umap=False, decom=True):
+    def sc3_calc_transformation(self, pca=True, laplacian=False, umap=False, decom=False, manifold_method=False):
         # print(">>>SC3 calc transformation")
         dists_matrix = self.process_data
         n_component = max(self.adata.uns["n_dims"])
@@ -295,7 +294,23 @@ class SC3(object):
             for idx in range(dists_matrix.shape[-1]):
                 key_ = "decom_" + self.dist_names[idx]
                 _, vectors = np.linalg.eigh(dists_matrix[..., idx]) # only real symmetric matrix factorized 
-                trans_dicts[key_] = vectors[:, :n_component]
+                # _, vectors = np.linalg.eigh(preprocessing.scale(dists_matrix[..., idx]))
+                trans_dicts[key_] = vectors[:, -n_component:]
+
+        if manifold_method:
+            print(">>>SC3 calc transformation: manifold")
+
+            mds = manifold.MDS(n_component, dissimilarity="precomputed")
+            # manifold.LocallyLinearEmbedding()
+            # mds = manifold.TSNE(n_components=n_component, metric="precomputed")
+            
+            # decomposition.KernelPCA(dists_matrix)
+            for idx in range(dists_matrix.shape[-1]):
+                key_ = "manifold_" + self.dist_names[idx]
+                
+                components_ = mds.fit_transform(dists_matrix[..., idx]) # norm dists实验；因样本已经归一化, 此时不再需要进行标准化
+                # _ = pca_cls.transform(dists_matrix[..., idx])
+                trans_dicts[key_] = components_
 
         self.adata.uns["trans_matrix"] = trans_dicts # trans_dicts are set to anndata.uns for k-means
 
@@ -442,9 +457,17 @@ class SC3(object):
         ARI = {}
         for key_, pred in ks_res.items():
             ARI[key_] = metrics.adjusted_rand_score(labels.tolist(), pred)
-        print(ARI)
+            print("{}: {:.4f}".format(key_, ARI[key_]))
 
 
     @runtime_statistics
-    def save_results(self):
-        sc.write(os.path.join("../SC3/Results/", self.data_root.split("/")[-2]), self.adata, ext="h5ad")
+    def save_results(self, writeroot=None):
+        if writeroot is None:
+            return
+        else:
+            path = os.path.join("SC3/Results", writeroot)
+        
+        path = os.path.abspath(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        sc.write(os.path.join(path, self.data_root.split("/")[-2]), self.adata, ext="h5ad")

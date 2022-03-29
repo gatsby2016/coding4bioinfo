@@ -9,15 +9,15 @@ from utils import runtime_statistics
 
 
 @runtime_statistics
-def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True, WRITE=True):
+def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True, WRITEROOT=None):
     # os.getcwd()
     print(">>>SC3 algorithm for single cell RNA seq data")
 
     DATASET = data_root.split("/")[-2]
-    if LOAD and os.path.exists("SC3/Results/") and os.path.isfile(os.path.join("SC3/Results/", DATASET+".h5ad")):
-        print("Find h5ad file in {}, will load it and skip running".format(os.path.join("SC3/Results/")))
+    if LOAD and os.path.isfile(os.path.join("SC3/Results", WRITEROOT, DATASET+".h5ad")):
+        print("Find h5ad file in {}, will load it and skip running".format(os.path.join("SC3/Results", WRITEROOT)))
 
-        adata = sc.read(os.path.join("../SC3/Results/", DATASET), ext="h5ad")
+        adata = sc.read(os.path.join("../SC3/Results/", WRITEROOT, DATASET), ext="h5ad")
         # print("est_k value: {}".format(adata.uns["est_k"]))
 
         print("===========Only Cluster results ARI metrics")
@@ -28,10 +28,10 @@ def main(data_root, anno_root, Krange=None, num4SVM=0, LOAD=True, WRITE=True):
             SC3.cal_metric_ARI(adata.obs["category"], adata.uns["global_res"])
 
     else:
-        print("Do NOT find h5ad file in {}, will run directly".format(os.path.join("SC3/Results/")))
+        print("No need to load, or Do NOT find h5ad file in {}, will run directly".format(os.path.join("SC3/Results")))
 
         sc3 = SC3(data_root, anno_root, k_range=Krange, num_SVM_train=num4SVM)
-        sc3.sc3_onego_run(write=WRITE)
+        sc3.sc3_onego_run(writeroot=WRITEROOT)
 
 
 if __name__ == "__main__":
@@ -51,4 +51,4 @@ if __name__ == "__main__":
     idx = 3
     print("Handling dataset: ", anno_root[idx])
 
-    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=False, WRITE=False)
+    main(data_root[idx], anno_root[idx], Krange=None, num4SVM=0, LOAD=False, WRITEROOT=None)
