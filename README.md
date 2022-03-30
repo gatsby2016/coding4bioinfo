@@ -18,6 +18,8 @@ coding test for bioinfo, bioinfomatics.
 
 
 ## Update
+- 3.30 完成[阶段性报告输出](http://htmlpreview.github.io/?https://github.com/gatsby2016/coding4bioinfo/blob/main/docs/SC3-exp-report.html)；更新部分数据集cluster图和rbf的h5ad文件；Baron和klein文件太大未上传.
+
 - 3.29 针对PCoA和kPCA的等价推导，有以下疑问：
   - 能否对输出的dist matrix直接应用PCoA？
   - 能否直接对dist matrix做特征分解？此时相当于把dist matrix当成kernel matrix
